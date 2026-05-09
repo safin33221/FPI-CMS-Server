@@ -1,0 +1,10 @@
+enum Role {
+    ADMIN
+    TEACHER
+    STUDENT
+}
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
