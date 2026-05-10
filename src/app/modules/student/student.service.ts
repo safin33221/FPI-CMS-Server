@@ -21,6 +21,17 @@ type StudentImportError = {
   data: RawStudentRow;
 };
 
+type DepartmentLookup = {
+  id: string;
+  code: string;
+  name: string;
+};
+
+type SemesterLookup = {
+  id: string;
+  number: number;
+};
+
 // Helper: get first non-empty value from possible keys
 const getCellValue = (row: RawStudentRow, keys: string[]) => {
   for (const key of keys) {
@@ -163,11 +174,11 @@ const importStudentsFromFile = async (filePath: string) => {
   ]);
 
   const departmentMap = new Map<string, string>();
-  departments.forEach((department) => {
+  departments.forEach((department: DepartmentLookup) => {
     departmentMap.set(normalizeLookupValue(department.code), department.id);
     departmentMap.set(normalizeLookupValue(department.name), department.id);
   });
-  const semesterMap = new Map(semesters.map((s) => [s.number, s.id]));
+  const semesterMap = new Map(semesters.map((s: SemesterLookup) => [s.number, s.id]));
 
   let importedCount = 0;
   const errors: StudentImportError[] = [];
