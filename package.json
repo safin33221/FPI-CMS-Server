@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "tsx watch src/server.ts",
-    "build": "prisma generate --schema prisma/schema && tsc"
+    "build": "prisma generate --schema prisma/schema && tsc",
+    "postinstall": "prisma generate && pnpm approve-builds"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
