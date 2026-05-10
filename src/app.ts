@@ -12,7 +12,7 @@ app.use(express.urlencoded({ extended: true }));
 
 
 // api routes
-app.use("api/v2", router);
+app.use("/api/v2", router);
 
 app.get('/', (req: Request, res: Response) => {
   res.status(200).json({
