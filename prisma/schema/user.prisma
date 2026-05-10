@@ -1,67 +1,57 @@
 model User {
-    id   String @id @default(uuid())
-    name String
-
-    email    String @unique
-    password String
-    role     Role
-
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    isVerified Boolean   @default(false)
-    isActive   Boolean   @default(true)
-    lastLogin  DateTime?
-
-    // Personal Info
-    profileImage String?
-    gender       Gender?
-    dateOfBirth  DateTime?
-    phone        String?   @unique
-
-    // Address
-    address  String?
-    city     String?
-    district String?
-
-    // Relations
-    student Student?
-    teacher Teacher?
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  password      String
+  role          Role
+  isVerified    Boolean  @default(false)
+  isActive      Boolean  @default(true)
+  lastLogin     DateTime?
+  profileImage  String?
+  gender        Gender?
+  dateOfBirth   DateTime?
+  phone         String?  @unique
+  address       String?
+  city          String?
+  district      String?
+  student       Student?
+  teacher       Teacher?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Student {
-    id     String @id @default(uuid())
-    userId String @unique
-    user   User   @relation(fields: [userId], references: [id])
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id])
 
-    // Unique Data
-    roll           String @unique
-    registrationNo String @unique
+  roll           String   @unique
+  registrationNo String   @unique
+  session        String?
+  batch          String?
 
-    session String?
-    batch   String?
+  // Academic relation 
+  departmentId   String
+  department     Department @relation(fields: [departmentId], references: [id])
+  semesterId     String
+  semester       Semester   @relation(fields: [semesterId], references: [id])
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
+
+
+
 model Teacher {
-    id String @id @default(uuid())
-
-    userId String @unique
-    user   User   @relation(fields: [userId], references: [id])
-
-    // Academic / Professional Info
-    designation   String
-    qualification String?
-    teacherId     String  @unique
-
-    // designation   String
-    // qualification String?
-    // subjects          Subject[]
-    // attendanceSessions AttendanceSession[]
-
-    joiningDate DateTime?
-
-    experienceYears Int?
-
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id])
+  teacherId       String   @unique
+  designation     String
+  qualification   String?
+  joiningDate     DateTime?
+  experienceYears Int?
+  departmentId    String
+  department      Department @relation(fields: [departmentId], references: [id])
 }

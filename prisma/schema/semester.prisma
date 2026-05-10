@@ -1,0 +1,6 @@
+model Semester {
+  id        String    @id @default(uuid())
+  name      String    // "1st", "2nd"
+  number    Int
+  students  Student[]
+}
