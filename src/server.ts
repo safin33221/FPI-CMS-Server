@@ -1,15 +1,16 @@
 import app from "./app.js";
+import { envConfig } from "./app/config/env.config.js";
 import { prisma } from "./lib/prisma.js";
 
 async function StartServer() {
     try {
         await prisma.$connect();
         console.log("Database Connected");
-        const server = app.listen(5000, () => {
+        const server = app.listen(envConfig.PORT, () => {
             console.log(`Server is running on port 5000`);
         })
-      
-        const shutdown = async (signal: string) => { 
+
+        const shutdown = async (signal: string) => {
             console.log(`⚠️  ${signal} received. Shutting down gracefully...`);
 
             server.close(async () => {
@@ -31,6 +32,6 @@ async function StartServer() {
         process.exit(1);
     }
 }
-(async ()=>{
+(async () => {
     await StartServer();
 })();
