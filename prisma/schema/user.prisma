@@ -13,11 +13,25 @@ model User {
     isActive   Boolean   @default(true)
     lastLogin  DateTime?
 
-    profileImage String?
 
     // Personal Info
+    profileImage String?
     gender      Gender?
     dateOfBirth DateTime?
 
-    
+    // Relations
+    student Student?
 }
+
+model Student {
+    id     String @id @default(uuid())
+    userId String @unique
+    user   User   @relation(fields: [userId], references: [id])
+
+    // Unique Data
+    roll           String @unique
+    registrationNo String @unique
+}
+
+
+
