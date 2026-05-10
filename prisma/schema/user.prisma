@@ -1,6 +1,6 @@
 model User {
-    id   String  @id @default(uuid())
-    name String?
+    id   String @id @default(uuid())
+    name String
 
     email    String @unique
     password String
@@ -13,14 +13,20 @@ model User {
     isActive   Boolean   @default(true)
     lastLogin  DateTime?
 
-
     // Personal Info
     profileImage String?
-    gender      Gender?
-    dateOfBirth DateTime?
+    gender       Gender?
+    dateOfBirth  DateTime?
+    phone        String?   @unique
+
+    // Address
+    address  String?
+    city     String?
+    district String?
 
     // Relations
     student Student?
+    teacher Teacher?
 }
 
 model Student {
@@ -31,7 +37,31 @@ model Student {
     // Unique Data
     roll           String @unique
     registrationNo String @unique
+
+    session String?
+    batch   String?
 }
 
+model Teacher {
+    id String @id @default(uuid())
 
+    userId String @unique
+    user   User   @relation(fields: [userId], references: [id])
 
+    // Academic / Professional Info
+    designation   String
+    qualification String?
+    teacherId     String  @unique
+
+    // designation   String
+    // qualification String?
+    // subjects          Subject[]
+    // attendanceSessions AttendanceSession[]
+
+    joiningDate DateTime?
+
+    experienceYears Int?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
