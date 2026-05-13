@@ -128,6 +128,22 @@ const parseDate = (value: unknown): Date | undefined => {
   return isNaN(date.getTime()) ? undefined : date;
 };
 
+const getDateOnlyRange = (value: Date | string) => {
+  const date = parseDate(value);
+
+  if (!date) {
+    throw new Error('Invalid date of birth. Expected a valid date like YYYY-MM-DD.');
+  }
+
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date(start);
+  end.setDate(start.getDate() + 1);
+
+  return { start, end };
+};
+
 const getStudentPayloadFromRow = (row: RawStudentRow): StudentImportPayload => {
   return {
     roll: toOptionalString(getCellValue(row, ['roll', 'Roll'])),
@@ -279,6 +295,52 @@ const importStudentsFromFile = async (filePath: string) => {
   return { importedCount, errors };
 };
 
+const verifyStudent = async (data: {
+  roll: string;
+  registrationNo: string;
+  dob: Date | string;
+  phone: string;
+}) => {
+  const dobRange = getDateOnlyRange(data.dob);
+  console.log(data.roll);
+  console.log(data.registrationNo);
+  console.log(data.phone);
+
+  const student = await prisma.student.findFirst({
+    where: {
+      roll: data.roll,
+      registrationNo: data.registrationNo,
+
+      phone: data.phone,
+    },
+    select: {
+      id: true,
+      name: true,
+      department: {
+        select: { name: true }
+      },
+      semester: {
+        select: { name: true }
+      },
+      phone: true,
+    },
+  });
+
+  if (!student) {
+    throw new Error("No matching student found. Please check your credentials.");
+  }
+
+  return {
+    success: true,
+    studentId: student.id,
+    name: student.name,
+    department: student.department.name,
+    semester: student.semester.name,
+    maskedPhone: student.phone?.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2'),
+  };
+};
+
 export const StudentService = {
   importStudentsFromFile,
+  verifyStudent,
 };
