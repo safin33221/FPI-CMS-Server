@@ -6,8 +6,6 @@ const registerStudent = async (data: {
     email: string
     password: string
 }) => {
-    console.log(data.studentId)
-    console.log(data.email)
 
     // 1. Verify student exists
     const existingStudent =
@@ -63,7 +61,7 @@ const registerStudent = async (data: {
             email: data.email,
             password: hashedPassword,
             name: existingStudent.name,
-            role: "STUDENT",   // adjust to match your schema (e.g., 'student' or enum)
+            role: "STUDENT",   
             student: {
                 connect: {
                     id: data.studentId,
