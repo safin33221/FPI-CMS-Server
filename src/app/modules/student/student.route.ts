@@ -7,6 +7,6 @@ const router: Router = express.Router();
 const upload = multer({ dest: tmpdir() });
 
 router.post('/import', upload.single('file'), StudentController.importStudents);
-router.get('/verify-student', StudentController.verifyStudent);
+router.post('/verify-student', StudentController.verifyStudent);
 
 export const studentRoute: Router = router;

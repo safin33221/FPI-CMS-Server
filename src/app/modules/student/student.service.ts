@@ -298,10 +298,9 @@ const importStudentsFromFile = async (filePath: string) => {
 const verifyStudent = async (data: {
   roll: string;
   registrationNo: string;
-  dob: Date | string;
   phone: string;
 }) => {
-  const dobRange = getDateOnlyRange(data.dob);
+
   console.log(data.roll);
   console.log(data.registrationNo);
   console.log(data.phone);
@@ -310,34 +309,42 @@ const verifyStudent = async (data: {
     where: {
       roll: data.roll,
       registrationNo: data.registrationNo,
-
       phone: data.phone,
     },
     select: {
       id: true,
       name: true,
-      department: {
-        select: { name: true }
-      },
-      semester: {
-        select: { name: true }
-      },
+      roll: true,
+      registrationNo: true,
+      dob: true,
       phone: true,
+
+      department: {
+        select: { name: true },
+      },
+
+      semester: {
+        select: { name: true },
+      },
     },
-  });
+  })
 
   if (!student) {
     throw new Error("No matching student found. Please check your credentials.");
   }
-
   return {
     success: true,
     studentId: student.id,
     name: student.name,
-    department: student.department.name,
-    semester: student.semester.name,
-    maskedPhone: student.phone?.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2'),
-  };
+    roll: student.roll,
+    registrationNo: student.registrationNo,
+    dob: student.dob,
+    phone: student.phone,
+
+    department: student.department?.name,
+    semester: student.semester?.name,
+
+  }
 };
 
 export const StudentService = {
