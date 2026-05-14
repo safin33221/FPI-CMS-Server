@@ -48,7 +48,7 @@ const verifyStudent = catchAsync(async (req: Request, res: Response) => {
     });
   }
 
-  const result = await StudentService.verifyStudent({ roll, registrationNo, dob, phone });
+  const result = await StudentService.verifyStudent({ roll, registrationNo, phone });
 
   return res.status(200).json({
     success: true,
