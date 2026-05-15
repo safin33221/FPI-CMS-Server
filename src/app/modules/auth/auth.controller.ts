@@ -18,6 +18,17 @@ const registerStudent = catchAsync(
     }
 );
 
+const login = catchAsync(async (req: Request, res: Response) => {
+    const result = await authService.login(req.body)
+    return res.status(201).json({
+        success: true,
+        message:
+            "Student registered successfully",
+        data: result,
+    });
+})
+
 export const authController = {
     registerStudent,
+    login,
 };

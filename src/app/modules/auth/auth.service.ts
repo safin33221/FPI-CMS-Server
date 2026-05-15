@@ -61,7 +61,7 @@ const registerStudent = async (data: {
             email: data.email,
             password: hashedPassword,
             name: existingStudent.name,
-            role: "STUDENT",   
+            role: "STUDENT",
             student: {
                 connect: {
                     id: data.studentId,
@@ -97,6 +97,34 @@ const registerStudent = async (data: {
     }
 }
 
+
+const login = async (data: { email: string, password: string }) => {
+    const user = await prisma.user.findUnique({
+        where: { email: data.email }
+    })
+
+    //Check User exist
+    if (!user) {
+        throw new Error("User not found with this email")
+    }
+
+    const isPasswordMatched = await bcrypt.compare(
+        data.password,
+        user.password
+    );
+
+    if (!isPasswordMatched) {
+        throw new Error("Invalid password");
+    }
+
+    return {
+        success: true,
+        message: "Login successful",
+        user,
+    };
+
+}
 export const authService = {
     registerStudent,
+    login
 }
