@@ -2,6 +2,8 @@ import { unlink } from 'node:fs/promises';
 import type { Request, Response } from 'express';
 import catchAsync from '../../utils/catchAsync.js';
 import { StudentService } from './student.service.js';
+import sendResponse from '../../utils/sendResponse.js';
+import httpCode from '../../utils/httpStatus.js';
 
 const toRequiredString = (value: unknown) => {
   const normalizedValue = Array.isArray(value) ? value[0] : value;
@@ -25,11 +27,13 @@ const importStudents = catchAsync(async (req: Request, res: Response) => {
   try {
     const result = await StudentService.importStudentsFromFile(req.file.path);
 
-    return res.status(200).json({
+
+    sendResponse(res, {
+      status: httpCode.OK,
       success: true,
-      message: 'Students imported successfully',
-      data: result,
-    });
+      message: "Student Data imported successful",
+      data: result
+    })
   } finally {
     await unlink(req.file.path).catch(() => undefined);
   }
@@ -50,11 +54,14 @@ const verifyStudent = catchAsync(async (req: Request, res: Response) => {
 
   const result = await StudentService.verifyStudent({ roll, registrationNo, phone });
 
-  return res.status(200).json({
+
+  sendResponse(res, {
+    status: httpCode.OK,
     success: true,
-    message: 'Student verified successfully',
-    data: result,
-  });
+    message: "Student Data verified",
+    data: result
+
+  })
 });
 
 export const StudentController = {

@@ -24,12 +24,12 @@ const registerStudent = async (data: {
         })
 
     if (!existingStudent) {
-        throw new Error("Student not found")
+        throw new ApiError(httpCode.NOT_FOUND,"Student not found")
     }
 
     // 2. Check already registered
     const existingUser =
-        await prisma.user.findFirst({
+        await prisma.user.findFirst({ 
             where: {
                 student: {
                     roll: existingStudent.roll,
@@ -51,7 +51,7 @@ const registerStudent = async (data: {
         })
 
     if (existingEmail) {
-        return new ApiError(httpCode.FORBIDDEN, "Email already in use")
+        throw new ApiError(httpCode.FORBIDDEN, "Email already in use")
     }
 
     // 4. Hash password
@@ -105,9 +105,10 @@ const login = async (data: { email: string, password: string }) => {
         where: { email: data.email }
     })
 
+
     //Check User exist
     if (!user) {
-        return new ApiError(httpCode.NOT_FOUND, "User not found with this email")
+        throw new ApiError(httpCode.NOT_FOUND, "User not found with this email")
     }
 
     const isPasswordMatched = await bcrypt.compare(
@@ -116,14 +117,10 @@ const login = async (data: { email: string, password: string }) => {
     );
 
     if (!isPasswordMatched) {
-        return new ApiError(httpCode.FORBIDDEN, "Invalid password");
+        throw new ApiError(httpCode.FORBIDDEN, "Invalid password");
     }
 
-    return {
-        success: true,
-        message: "Login successful",
-        user,
-    };
+    return user
 
 }
 export const authService = {
