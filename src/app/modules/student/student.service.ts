@@ -1,6 +1,8 @@
 // src/services/studentImport.service.ts
 import xlsx from 'xlsx';
 import { prisma } from '../../../lib/prisma.js';
+import ApiError from '../../error/ApiError.js';
+import httpCode from '../../utils/httpStatus.js';
 
 type RawStudentRow = Record<string, unknown>;
 
@@ -132,7 +134,8 @@ const getDateOnlyRange = (value: Date | string) => {
   const date = parseDate(value);
 
   if (!date) {
-    throw new Error('Invalid date of birth. Expected a valid date like YYYY-MM-DD.');
+    // throw new Error('Invalid date of birth. Expected a valid date like YYYY-MM-DD.');
+    return new ApiError(httpCode.BAD_REQUEST, "Invalid date of birth. Expected a valid date like YYYY-MM-DD.")
   }
 
   const start = new Date(date);
@@ -330,7 +333,7 @@ const verifyStudent = async (data: {
   })
 
   if (!student) {
-    throw new Error("No matching student found. Please check your credentials.");
+    return new ApiError(httpCode.NOT_FOUND, "No matching student found. Please check your credentials.");
   }
   return {
     success: true,

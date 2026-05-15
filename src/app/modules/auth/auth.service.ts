@@ -1,5 +1,7 @@
 import bcrypt from "bcrypt"
 import { prisma } from "../../../lib/prisma.js"
+import ApiError from "../../error/ApiError.js"
+import httpCode from "../../utils/httpStatus.js"
 
 const registerStudent = async (data: {
     studentId: string
@@ -37,7 +39,7 @@ const registerStudent = async (data: {
         })
 
     if (existingUser) {
-        throw new Error("Student account already registered")
+        return new ApiError(httpCode.FORBIDDEN, "Student account already registered")
     }
 
     // 3. Check duplicate email
@@ -49,7 +51,7 @@ const registerStudent = async (data: {
         })
 
     if (existingEmail) {
-        throw new Error("Email already in use")
+        return new ApiError(httpCode.FORBIDDEN, "Email already in use")
     }
 
     // 4. Hash password
@@ -105,7 +107,7 @@ const login = async (data: { email: string, password: string }) => {
 
     //Check User exist
     if (!user) {
-        throw new Error("User not found with this email")
+        return new ApiError(httpCode.NOT_FOUND, "User not found with this email")
     }
 
     const isPasswordMatched = await bcrypt.compare(
@@ -114,7 +116,7 @@ const login = async (data: { email: string, password: string }) => {
     );
 
     if (!isPasswordMatched) {
-        throw new Error("Invalid password");
+        return new ApiError(httpCode.FORBIDDEN, "Invalid password");
     }
 
     return {
