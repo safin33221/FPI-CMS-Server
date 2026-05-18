@@ -6,10 +6,7 @@ import httpCode from "../../utils/httpStatus.js";
 
 const registerStudent = catchAsync(
     async (req: Request, res: Response) => {
-        const result =
-            await authService.registerStudent(
-                req.body
-            );
+        const result = await authService.registerStudent(req.body);
 
         return res.status(201).json({
             success: true,
@@ -22,12 +19,27 @@ const registerStudent = catchAsync(
 
 const login = catchAsync(async (req: Request, res: Response) => {
     const result = await authService.login(req.body)
+    const { accessToken, refreshToken, user } = result;
 
+    
+    res.cookie("accessToken", accessToken, {
+        secure: process.env.NODE_ENV === "production",
+        httpOnly: true,
+        sameSite: "none",
+        maxAge: 1000 * 60 * 60, // 1 hour
+    });
+
+    res.cookie("refreshToken", refreshToken, {
+        secure: process.env.NODE_ENV === "production",
+        httpOnly: true,
+        sameSite: "none",
+        maxAge: 1000 * 60 * 60 * 24 * 90, // 90 days
+    });
     sendResponse(res, {
         status: httpCode.OK,
         success: true,
         message: "Student Login Success full",
-        data: result
+        data: user
     })
 })
 

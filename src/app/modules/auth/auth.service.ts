@@ -2,6 +2,7 @@ import bcrypt from "bcrypt"
 import { prisma } from "../../../lib/prisma.js"
 import ApiError from "../../error/ApiError.js"
 import httpCode from "../../utils/httpStatus.js"
+import { generateTokens } from "../../utils/generateToken.js"
 
 const registerStudent = async (data: {
     studentId: string
@@ -24,12 +25,12 @@ const registerStudent = async (data: {
         })
 
     if (!existingStudent) {
-        throw new ApiError(httpCode.NOT_FOUND,"Student not found")
+        throw new ApiError(httpCode.NOT_FOUND, "Student not found")
     }
 
     // 2. Check already registered
     const existingUser =
-        await prisma.user.findFirst({ 
+        await prisma.user.findFirst({
             where: {
                 student: {
                     roll: existingStudent.roll,
@@ -102,7 +103,18 @@ const registerStudent = async (data: {
 
 const login = async (data: { email: string, password: string }) => {
     const user = await prisma.user.findUnique({
-        where: { email: data.email }
+        where: { email: data.email },
+        select: {
+            id: true,
+            password: true,
+            role: true,
+            student: {
+                select: {
+                    roll: true
+                }
+            }
+        }
+
     })
 
 
@@ -120,7 +132,12 @@ const login = async (data: { email: string, password: string }) => {
         throw new ApiError(httpCode.FORBIDDEN, "Invalid password");
     }
 
-    return user
+    const tokens = generateTokens(user);
+    const { password, ...safeUser } = user
+    return {
+        user: safeUser,
+        ...tokens,
+    };
 
 }
 export const authService = {
