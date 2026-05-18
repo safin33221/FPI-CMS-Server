@@ -3,6 +3,7 @@ import catchAsync from "../../utils/catchAsync.js";
 import { authService } from "./auth.service.js";
 import sendResponse from "../../utils/sendResponse.js";
 import httpCode from "../../utils/httpStatus.js";
+import { envConfig } from "../../config/env.config.js";
 
 const registerStudent = catchAsync(
     async (req: Request, res: Response) => {
@@ -21,18 +22,18 @@ const login = catchAsync(async (req: Request, res: Response) => {
     const result = await authService.login(req.body)
     const { accessToken, refreshToken, user } = result;
 
-    
+
     res.cookie("accessToken", accessToken, {
-        secure: process.env.NODE_ENV === "production",
+        secure: envConfig.NODE_ENV === "production",
         httpOnly: true,
-        sameSite: "none",
+        sameSite: "lax",
         maxAge: 1000 * 60 * 60, // 1 hour
     });
 
     res.cookie("refreshToken", refreshToken, {
-        secure: process.env.NODE_ENV === "production",
+        secure: envConfig.NODE_ENV === "production",
         httpOnly: true,
-        sameSite: "none",
+        sameSite: "lax",
         maxAge: 1000 * 60 * 60 * 24 * 90, // 90 days
     });
     sendResponse(res, {

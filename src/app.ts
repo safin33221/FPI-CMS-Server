@@ -3,12 +3,20 @@ import cors from 'cors';
 import router from './app/routes/index.route.js';
 import notFound from './app/middleware/notFound.js';
 import globalErrorHandler from './app/middleware/globalErrorHandler.js';
+import cookieParser from 'cookie-parser';
 
 
 const app: Application = express();
 
+
+app.use(cookieParser())
 app.use(express.json());
-app.use(cors())
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  })
+)
 app.use(express.urlencoded({ extended: true }));
 
 

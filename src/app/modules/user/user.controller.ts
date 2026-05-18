@@ -1,4 +1,4 @@
-import type{ NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 
 
 
@@ -36,7 +36,8 @@ const getSingleUser = catchAsync(
 
 const getMyProfile = catchAsync(
     async (req: Request, res: Response, _next: NextFunction) => {
-        const userId = (req as any).user.userId;
+        const userId = (req as any).user.id
+        console.log(userId);
 
         const result = await userService.getMyProfile(userId);
 

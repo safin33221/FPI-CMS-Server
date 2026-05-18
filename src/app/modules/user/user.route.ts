@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { userController } from "./user.controller.js";
+import { authenticate } from "../../middleware/Authenticate.js";
 
 
 
@@ -7,7 +8,7 @@ const router: Router = Router();
 
 router.get("/", userController.getAllUser);
 
-router.get("/me", userController.getMyProfile);
+router.get("/me", authenticate, userController.getMyProfile);
 
 router.get("/:id", userController.getSingleUser);
 
