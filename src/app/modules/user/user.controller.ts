@@ -2,10 +2,11 @@ import type { NextFunction, Request, Response } from "express";
 
 
 
-import httpCode from "http-status";
+
 import catchAsync from "../../utils/catchAsync.js";
 import { userService } from "./user.service.js";
 import sendResponse from "../../utils/sendResponse.js";
+import httpCode from "../../utils/httpStatus.js";
 
 
 const getAllUser = catchAsync(
