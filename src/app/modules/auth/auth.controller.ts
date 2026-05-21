@@ -1,4 +1,4 @@
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import catchAsync from "../../utils/catchAsync.js";
 import { authService } from "./auth.service.js";
 import sendResponse from "../../utils/sendResponse.js";
@@ -44,7 +44,30 @@ const login = catchAsync(async (req: Request, res: Response) => {
     })
 })
 
+const logout = catchAsync(
+    async (_req: Request, res: Response, _next: NextFunction) => {
+        res.clearCookie("accessToken", {
+            secure: process.env.NODE_ENV === "production",
+            httpOnly: true,
+            sameSite: "none",
+        });
+
+        res.clearCookie("refreshToken", {
+            secure: process.env.NODE_ENV === "production",
+            httpOnly: true,
+            sameSite: "none",
+        });
+
+        sendResponse(res, {
+            status: httpCode.OK,
+            success: true,
+            message: "Logout successful",
+        });
+    }
+);
+
 export const authController = {
     registerStudent,
     login,
+    logout
 };

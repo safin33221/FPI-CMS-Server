@@ -140,6 +140,7 @@ const login = async (data: { email: string, password: string }) => {
     };
 
 }
+
 export const authService = {
     registerStudent,
     login
