@@ -1,5 +1,5 @@
 model Department {
-  id String @id @default(uuid())
+  id String @id @unique @default(uuid())
 
   name String
   code String @unique
@@ -11,5 +11,5 @@ model Department {
   head   Teacher? @relation("DepartmentHead", fields: [headId], references: [id])
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
