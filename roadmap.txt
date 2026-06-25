@@ -1,0 +1,8 @@
+1. Department
+2. Semester
+3. Subject
+4. Teacher
+5. Teacher Assignment
+6. Attendance Session
+7. QR Attendance
+8. Student Portal

@@ -44,14 +44,21 @@ model Student {
 }
 
 model Teacher {
-    id              String     @id @default(uuid())
-    userId          String     @unique
-    user            User       @relation(fields: [userId], references: [id])
-    teacherId       String     @unique
-    designation     String
-    qualification   String?
+    id String @id @default(uuid())
+
+    userId String @unique
+    user   User   @relation(fields: [userId], references: [id])
+
+    teacherId String @unique
+
+    designation   String
+    qualification String?
+
     joiningDate     DateTime?
     experienceYears Int?
-    departmentId    String
-    department      Department @relation(fields: [departmentId], references: [id])
+
+    departmentId String
+    department   Department @relation(fields: [departmentId], references: [id])
+
+    headedDepartment Department? @relation("DepartmentHead")
 }
