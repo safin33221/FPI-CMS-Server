@@ -8,7 +8,7 @@ const router: Router = Router();
 
 router.get("/", userController.getAllUser);
 
-router.get("/me", authenticate, userController.getMyProfile);
+router.get("/my-profile", authenticate, userController.getMyProfile);
 
 router.get("/:id", userController.getSingleUser);
 
