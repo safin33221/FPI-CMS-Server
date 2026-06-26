@@ -1,107 +1,168 @@
+
+
+
+
 import bcrypt from "bcrypt";
-
 import { prisma } from "../../../lib/prisma.js";
-
 import ApiError from "../../error/ApiError.js";
 import httpCode from "../../utils/httpStatus.js";
+import { Role } from "@prisma/client";
 
-const createStaff = async (payload: any) => {
-    const existingUser =
-        await prisma.user.findUnique({
-            where: {
-                email: payload.email,
-            },
-        });
+const STAFF_ROLES: Role[] = [
+    "ADMIN",
+    "REGISTRAR",
+    "ACCOUNTANT",
+    "TEACHER",
+    "DEPARTMENT_HEAD",
+    "EXAM_CONTROLLER",
+];
+
+export const createStaff = async (payload: any) => {
+    if (!STAFF_ROLES.includes(payload.role)) {
+        throw new ApiError(
+            httpCode.BAD_REQUEST,
+            "Invalid staff role"
+        );
+    }
+
+    const existingUser = await prisma.user.findFirst({
+        where: {
+            OR: [
+                { email: payload.email },
+                { phone: payload.phone },
+            ],
+        },
+    });
 
     if (existingUser) {
         throw new ApiError(
             httpCode.BAD_REQUEST,
-            "Email already exists"
+            "Email or phone already exists"
         );
     }
 
-    const password =
-        Math.random()
-            .toString(36)
-            .slice(-8);
+    if (
+        payload.role === "TEACHER" ||
+        payload.role === "DEPARTMENT_HEAD"
+    ) {
+        const department =
+            await prisma.department.findUnique({
+                where: {
+                    id: payload.departmentId,
+                },
+            });
 
-    const hashedPassword =
-        await bcrypt.hash(password, 10);
+        if (!department) {
+            throw new ApiError(
+                httpCode.NOT_FOUND,
+                "Department not found"
+            );
+        }
+    }
 
-    const result =
-        await prisma.$transaction(
-            async (tx) => {
-                const user =
-                    await tx.user.create({
-                        data: {
-                            name: payload.name,
-                            email: payload.email,
-                            password:
-                                hashedPassword,
 
-                            role: payload.role,
+    const result = await prisma.$transaction(
+        async (tx) => {
+            const lastUser = await tx.user.findFirst({
+                where: {
+                    role: {
+                        in: [
+                            "PRINCIPAL",
+                            "ADMIN",
+                            "REGISTRAR",
+                            "ACCOUNTANT",
+                            "TEACHER",
+                            "DEPARTMENT_HEAD",
+                            "EXAM_CONTROLLER",
+                        ],
+                    },
+                },
+                orderBy: {
+                    loginId: "desc",
+                },
+                select: {
+                    loginId: true,
+                },
+            });
 
-                            phone:
-                                payload.phone,
+            const nextLoginId = lastUser
+                ? Number(lastUser.loginId) + 1
+                : 1001;
 
-                            address:
-                                payload.address,
+            const loginId =
+                nextLoginId.toString();
 
-                            gender:
-                                payload.gender,
 
-                            isVerified: true,
-                        },
-                    });
+            const tempPassword = `FPI@${loginId}`;
 
-                const teacherRoles = [
-                    "TEACHER",
-                    "DEPARTMENT_HEAD",
-                ];
 
-                if (
-                    teacherRoles.includes(
-                        payload.role
-                    )
-                ) {
-                    await tx.teacher.create({
-                        data: {
-                            userId: user.id,
+            const hashedPassword =
+                await bcrypt.hash(tempPassword, 10);
 
-                            teacherId: `T-${Date.now()}`,
+            const user =
+                await tx.user.create({
+                    data: {
+                        name: payload.name,
+                        email: payload.email,
+                        phone: payload.phone,
+                        address: payload.address,
+                        gender: payload.gender,
 
-                            designation:
-                                payload.designation,
+                        role: payload.role,
 
-                            qualification:
-                                payload.qualification,
+                        loginId,
 
-                            joiningDate:
-                                payload.joiningDate
-                                    ? new Date(
-                                          payload.joiningDate
-                                      )
-                                    : null,
+                        password:
+                            hashedPassword,
 
-                            experienceYears:
-                                payload.experienceYears
-                                    ? Number(
-                                          payload.experienceYears
-                                      )
-                                    : null,
+                        isVerified: true,
+                        mustChangePassword: true,
+                    },
+                });
 
-                            departmentId:
-                                payload.departmentId,
-                        },
-                    });
-                }
+            if (
+                payload.role === "TEACHER" ||
+                payload.role ===
+                "DEPARTMENT_HEAD"
+            ) {
+                await tx.teacher.create({
+                    data: {
+                        userId: user.id,
 
-                return {
-                    user,
-                    password,
-                };
+                        teacherId: loginId,
+                        designation:
+                            payload.designation,
+
+                        qualification:
+                            payload.qualification,
+
+                        joiningDate:
+                            payload.joiningDate
+                                ? new Date(
+                                    payload.joiningDate
+                                )
+                                : null,
+
+                        experienceYears:
+                            payload.experienceYears
+                                ? Number(
+                                    payload.experienceYears
+                                )
+                                : null,
+
+                        departmentId:
+                            payload.departmentId,
+                    },
+                });
             }
-        );
+
+            return {
+                user,
+                loginId,
+                password: tempPassword,
+            };
+        }
+    );
 
     return result;
 };

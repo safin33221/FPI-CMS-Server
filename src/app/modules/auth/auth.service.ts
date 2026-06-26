@@ -65,6 +65,7 @@ const registerStudent = async (data: {
             password: hashedPassword,
             name: existingStudent.name,
             role: "STUDENT",
+            loginId: existingStudent.roll,
             student: {
                 connect: {
                     id: data.studentId,
@@ -101,45 +102,68 @@ const registerStudent = async (data: {
 }
 
 
-const login = async (data: { email: string, password: string }) => {
-    const user = await prisma.user.findUnique({
-        where: { email: data.email },
+const login = async (data: {
+    identifier: string;
+    password: string;
+}) => {
+    const user = await prisma.user.findFirst({
+        where: {
+            OR: [
+                {
+                    email: data.identifier,
+                },
+                {
+                    phone: data.identifier,
+                },
+                {
+                    loginId: data.identifier,
+                },
+            ],
+        },
         select: {
             id: true,
+            loginId: true,
+            email: true,
+            phone: true,
             password: true,
             role: true,
             student: {
                 select: {
-                    roll: true
-                }
-            }
-        }
+                    roll: true,
+                },
+            },
+        },
+    });
 
-    })
-
-
-    //Check User exist
     if (!user) {
-        throw new ApiError(httpCode.NOT_FOUND, "User not found with this email")
+        throw new ApiError(
+            httpCode.NOT_FOUND,
+            "User not found"
+        );
     }
 
-    const isPasswordMatched = await bcrypt.compare(
-        data.password,
-        user.password
-    );
+    const isPasswordMatched =
+        await bcrypt.compare(
+            data.password,
+            user.password
+        );
 
     if (!isPasswordMatched) {
-        throw new ApiError(httpCode.FORBIDDEN, "Invalid password");
+        throw new ApiError(
+            httpCode.FORBIDDEN,
+            "Invalid password"
+        );
     }
 
     const tokens = generateTokens(user);
-    const { password, ...safeUser } = user
+
+    const { password, ...safeUser } = user;
+
     return {
         user: safeUser,
         ...tokens,
     };
-
-}
+};
 
 export const authService = {
     registerStudent,

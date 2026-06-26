@@ -28,11 +28,12 @@ export const seedAdmin = async () => {
             name: "Assistant Principal",
             email,
             password: hashedPassword,
-
+            loginId: "10002",
             role: Role.ADMIN,
 
             isVerified: true,
             isActive: true,
+            mustChangePassword: false
         },
     });
 

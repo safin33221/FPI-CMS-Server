@@ -27,7 +27,7 @@ const login = catchAsync(async (req: Request, res: Response) => {
         secure: envConfig.NODE_ENV === "production",
         httpOnly: true,
         sameSite: "lax",
-        maxAge: 1000 * 60 * 60, // 1 hour
+        maxAge: 1000 * 60 * 60 * 24, // 1 hour
     });
 
     res.cookie("refreshToken", refreshToken, {
