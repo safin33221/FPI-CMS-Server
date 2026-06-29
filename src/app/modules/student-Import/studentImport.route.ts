@@ -3,8 +3,8 @@ import { Router } from "express";
 
 
 import { studentImportController } from "./studentImport.controller.js";
-import { authenticate } from "../middleware/Authenticate.js";
-import { createUploader } from "../middleware/upload.js";
+import { authenticate } from "../../middleware/Authenticate.js";
+import { createUploader } from "../../middleware/upload.js";
 
 const router = Router();
 
@@ -22,7 +22,7 @@ router.get(
 );
 
 router.post(
-    "/commit",
+    "/commit/:fileId",
     authenticate,
     createUploader("file", "excel"),
     studentImportController.commitImport

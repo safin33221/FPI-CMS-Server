@@ -9,9 +9,10 @@ import fs from "fs/promises";
 
 
 import { studentImportService } from "./studentImport.service.js";
-import catchAsync from "../utils/catchAsync.js";
-import sendResponse from "../utils/sendResponse.js";
-import httpCode from "../utils/httpStatus.js";
+import catchAsync from "../../utils/catchAsync.js";
+import sendResponse from "../../utils/sendResponse.js";
+import httpCode from "../../utils/httpStatus.js";
+import ApiError from "../../error/ApiError.js";
 
 const previewImport = catchAsync(
     async (
@@ -60,21 +61,22 @@ const getPreview = catchAsync(
 const commitImport = catchAsync(
     async (
         req: Request,
-        res: Response,
-        _next: NextFunction
+        res: Response
     ) => {
 
-        if (!req.file) {
-            throw new Error("Excel file is required");
+        const { fileId } = req.params;
+
+        if (!fileId) {
+            throw new ApiError(
+                httpCode.BAD_REQUEST,
+                "File ID is required."
+            );
         }
 
         const result =
             await studentImportService.commitImport(
-                req.file.path
+                fileId as string
             );
-
-        // uploaded file delete
-        await fs.unlink(req.file.path);
 
         sendResponse(res, {
             status: httpCode.CREATED,

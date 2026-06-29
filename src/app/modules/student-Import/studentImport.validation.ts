@@ -1,16 +1,16 @@
-// import {
-// DepartmentLookup,
-// ParsedStudentRow,
-// PreviewStudent,
-// SemesterLookup,
-// } from "./studentImport.types.js";
-
 import type {
     DepartmentLookup,
     ParsedStudentRow,
     PreviewStudent,
     SemesterLookup,
 } from "./studentImport.types.js";
+
+
+const normalizeDepartment = (value: string) =>
+    value
+        .trim()
+        .toLowerCase()
+        .replace(/\stechnology$/i, "");
 
 export const validateStudentRow = (
     rowNumber: number,
@@ -24,9 +24,12 @@ export const validateStudentRow = (
     importedRegistrations: Set<string>,
     importedPhones: Set<string>,
 ): PreviewStudent => {
+
     const errors: string[] = [];
 
+    //--------------------------------------------------
     // Required Fields
+    //--------------------------------------------------
 
     if (!student.fullName)
         errors.push("Full Name is required");
@@ -35,9 +38,7 @@ export const validateStudentRow = (
         errors.push("Roll is required");
 
     if (!student.registrationNo)
-        errors.push(
-            "Registration No is required"
-        );
+        errors.push("Registration No is required");
 
     if (!student.phone)
         errors.push("Phone is required");
@@ -46,33 +47,34 @@ export const validateStudentRow = (
         errors.push("Gender is required");
 
     if (!student.departmentCode)
-        errors.push(
-            "Department Code is required"
-        );
+        errors.push("Department is required");
 
     if (!student.semesterNumber)
-        errors.push(
-            "Semester is required"
-        );
+        errors.push("Semester is required");
 
     if (!student.session)
         errors.push("Session is required");
 
     //--------------------------------------------------
-    // Department Exists
+    // Department Exists (Code OR Name)
     //--------------------------------------------------
 
-    if (
-        student.departmentCode &&
-        !departments.some(
-            (d) =>
-                d.code.toUpperCase() ===
-                student.departmentCode.toUpperCase()
-        )
-    ) {
-        errors.push(
-            "Department not found"
-        );
+    if (student.departmentCode) {
+
+        const input = normalizeDepartment(student.departmentCode);
+
+        const department = departments.find((d) => {
+            return (
+                d.code.trim().toLowerCase() === input ||
+                normalizeDepartment(d.name) === input
+            );
+        });
+
+        if (!department) {
+            errors.push(
+                "Department not found"
+            );
+        }
     }
 
     //--------------------------------------------------
@@ -152,6 +154,7 @@ export const validateStudentRow = (
     }
 
     if (student.phone) {
+
         if (
             importedPhones.has(
                 student.phone

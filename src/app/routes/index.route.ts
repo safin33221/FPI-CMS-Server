@@ -5,7 +5,7 @@ import { UserRoutes } from "../modules/user/user.route.js";
 import { DepartmentRoutes } from "../modules/department/department.route.js";
 import { SemesterRoutes } from "../modules/semester/semester.route.js";
 import { StaffRoutes } from "../modules/staff/staff.route.js";
-import { StudentImportRoutes } from "../student-Import/studentImport.route.js";
+import { StudentImportRoutes } from "../modules/student-Import/studentImport.route.js";
 
 const router: Router = express.Router();
 

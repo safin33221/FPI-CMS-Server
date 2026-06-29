@@ -1,5 +1,6 @@
 import xlsx from "xlsx";
-
+import path from "path";
+import fs from "fs";
 import {
     mapExcelRow,
 } from "./studentImport.utils.js";
@@ -17,9 +18,10 @@ import type {
     SemesterLookup,
     RawExcelRow,
 } from "./studentImport.types.js";
-import ApiError from "../error/ApiError.js";
-import httpCode from "../utils/httpStatus.js";
-import { prisma } from "../../lib/prisma.js";
+import ApiError from "../../error/ApiError.js";
+import httpCode from "../../utils/httpStatus.js";
+import { prisma } from "../../../lib/prisma.js";
+import { findDepartment } from "../../utils/studentImport.utils.js";
 
 
 const validateHeaders = (
@@ -312,139 +314,8 @@ const previewImport = async (
 };
 
 
-const commitImport = async (
-    filePath: string
-) => {
 
-    //--------------------------------------
-    // Read Workbook
-    //--------------------------------------
 
-    const workbook =
-        xlsx.readFile(filePath);
-
-    const sheetName = workbook.SheetNames[0];
-
-    if (!sheetName) {
-        throw new ApiError(
-            httpCode.BAD_REQUEST,
-            "No worksheet found."
-        );
-    }
-
-    const sheet = workbook.Sheets[sheetName];
-
-    if (!sheet) {
-        throw new ApiError(
-            httpCode.BAD_REQUEST,
-            "Worksheet not found."
-        );
-    }
-
-    const rows =
-        xlsx.utils.sheet_to_json<RawExcelRow>(
-            sheet,
-            {
-                defval: "",
-            }
-        );
-
-    //--------------------------------------
-    // Lookup
-    //--------------------------------------
-
-    const [
-        departments,
-        semesters,
-    ] = await Promise.all([
-        prisma.department.findMany(),
-
-        prisma.semester.findMany(),
-    ]);
-
-    const departmentMap =
-        new Map(
-            departments.map((d) => [
-                d.code.toUpperCase(),
-                d.id,
-            ])
-        );
-
-    const semesterMap =
-        new Map(
-            semesters.map((s) => [
-                s.number,
-                s.id,
-            ])
-        );
-
-    //--------------------------------------
-
-    let imported = 0;
-
-    await prisma.$transaction(
-        async (tx) => {
-
-            for (const row of rows) {
-
-                const student =
-                    mapExcelRow(row);
-
-                const departmentId =
-                    departmentMap.get(
-                        student.departmentCode.toUpperCase()
-                    );
-
-                const semesterId =
-                    semesterMap.get(
-                        student.semesterNumber
-                    );
-
-                if (
-                    !departmentId ||
-                    !semesterId
-                ) {
-                    continue;
-                }
-
-                await tx.student.create({
-                    data: {
-
-                        name:
-                            student.fullName,
-
-                        roll:
-                            student.roll,
-
-                        registrationNo:
-                            student.registrationNo,
-
-                        phone:
-                            student.phone,
-
-                        gender:
-                            student.gender,
-
-                        session:
-                            student.session,
-
-                        departmentId,
-
-                        semesterId,
-                    },
-                });
-
-                imported++;
-            }
-        }
-    );
-
-    return {
-        imported,
-    };
-};
-import path from "path";
-import fs from "fs";
 
 const getPreview = async (
     fileId: string
@@ -468,6 +339,132 @@ const getPreview = async (
         fileId
     );
 };
+
+const commitImport = async (
+    fileId: string
+) => {
+
+    //--------------------------------------
+    // Resolve File Path
+    //--------------------------------------
+
+    const filePath = path.join(
+        process.cwd(),
+        "uploads",
+        "excel",
+        fileId
+    );
+
+    if (!fs.existsSync(filePath)) {
+        throw new ApiError(
+            httpCode.NOT_FOUND,
+            "Import file not found."
+        );
+    }
+
+    //--------------------------------------
+    // Read Workbook
+    //--------------------------------------
+
+    const workbook = xlsx.readFile(filePath);
+
+    const sheetName = workbook.SheetNames[0];
+
+    if (!sheetName) {
+        throw new ApiError(
+            httpCode.BAD_REQUEST,
+            "No worksheet found."
+        );
+    }
+
+    const sheet = workbook.Sheets[sheetName];
+
+    if (!sheet) {
+        throw new ApiError(
+            httpCode.BAD_REQUEST,
+            "Worksheet not found."
+        );
+    }
+
+    validateHeaders(sheet);
+
+    const rows = xlsx.utils.sheet_to_json<RawExcelRow>(
+        sheet,
+        {
+            defval: "",
+        }
+    );
+
+    //--------------------------------------
+    // Load Lookups
+    //--------------------------------------
+
+    const [departments, semesters] =
+        await Promise.all([
+            prisma.department.findMany(),
+            prisma.semester.findMany(),
+        ]);
+
+    const semesterMap = new Map(
+        semesters.map((semester) => [
+            semester.number,
+            semester.id,
+        ])
+    );
+
+    //--------------------------------------
+
+    let imported = 0;
+
+    await prisma.$transaction(async (tx) => {
+
+        for (const row of rows) {
+
+            const student = mapExcelRow(row);
+
+            const department = findDepartment(
+                student.departmentCode,
+                departments
+            );
+
+            const semesterId =
+                semesterMap.get(
+                    student.semesterNumber
+                );
+
+            if (
+                !department ||
+                !semesterId
+            ) {
+                continue;
+            }
+
+            await tx.student.create({
+                data: {
+                    name: student.fullName,
+                    roll: student.roll,
+                    registrationNo:student.registrationNo,
+                    phone: student.phone,
+                    // gender: student.gender,
+                    session: student.session,
+                    departmentId: department.id,
+                    semesterId,
+                },
+            });
+
+            imported++;
+        }
+    });
+
+    return {
+        imported,
+        skipped: rows.length - imported,
+        total: rows.length,
+    };
+};
+
+
+
 export const studentImportService = {
     previewImport,
     commitImport,

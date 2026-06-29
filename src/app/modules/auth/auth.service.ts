@@ -106,20 +106,32 @@ const login = async (data: {
     identifier: string;
     password: string;
 }) => {
+    const identifier = data.identifier.trim();
+
     const user = await prisma.user.findFirst({
         where: {
             OR: [
                 {
-                    email: data.identifier,
+                    email: {
+                        equals: identifier,
+                        mode: "insensitive",
+                    },
                 },
                 {
-                    phone: data.identifier,
+                    phone: identifier,
                 },
                 {
-                    loginId: data.identifier,
+                    loginId: {
+                        equals: identifier,
+                        mode: "insensitive",
+                    },
                 },
             ],
+
+            isActive: true,
+
         },
+
         select: {
             id: true,
             loginId: true,
@@ -127,20 +139,30 @@ const login = async (data: {
             phone: true,
             password: true,
             role: true,
+
             student: {
                 select: {
+                    id: true,
                     roll: true,
                 },
             },
         },
     });
 
-    if (!user) {
+    //----------------------------------------
+    // Invalid Credentials
+    //----------------------------------------
+
+    if (!user || !user.password) {
         throw new ApiError(
-            httpCode.NOT_FOUND,
-            "User not found"
+            httpCode.UNAUTHORIZED,
+            "Invalid credentials"
         );
     }
+
+    //----------------------------------------
+    // Verify Password
+    //----------------------------------------
 
     const isPasswordMatched =
         await bcrypt.compare(
@@ -150,12 +172,21 @@ const login = async (data: {
 
     if (!isPasswordMatched) {
         throw new ApiError(
-            httpCode.FORBIDDEN,
-            "Invalid password"
+            httpCode.UNAUTHORIZED,
+            "Invalid credentials"
         );
     }
 
-    const tokens = generateTokens(user);
+    //----------------------------------------
+    // Generate Tokens
+    //----------------------------------------
+
+    const tokens = generateTokens({
+        id: user.id,
+        role: user.role,
+    });
+
+    //----------------------------------------
 
     const { password, ...safeUser } = user;
 
