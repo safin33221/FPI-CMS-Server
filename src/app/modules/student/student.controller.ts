@@ -16,28 +16,24 @@ const toRequiredString = (value: unknown) => {
   return str.length > 0 ? str : undefined;
 };
 
-const importStudents = catchAsync(async (req: Request, res: Response) => {
-  if (!req.file?.path) {
-    return res.status(400).json({
-      success: false,
-      message: 'No file uploaded',
-    });
-  }
-
-  try {
-    const result = await StudentService.importStudentsFromFile(req.file.path);
-
+const getAllStudent = catchAsync(
+  async (req, res) => {
+    const result =
+      await StudentService.getAllStudent(
+        req.query
+      );
 
     sendResponse(res, {
       status: httpCode.OK,
       success: true,
-      message: "Student Data imported successful",
-      data: result
-    })
-  } finally {
-    await unlink(req.file.path).catch(() => undefined);
+      message:
+        "Students retrieved successfully",
+      data: result.data,
+      meta: result.meta,
+    });
   }
-});
+);
+
 
 const verifyStudent = catchAsync(async (req: Request, res: Response) => {
   const roll = toRequiredString(req.body.roll ?? req.query.roll);
@@ -65,6 +61,6 @@ const verifyStudent = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const StudentController = {
-  importStudents,
+  getAllStudent,
   verifyStudent,
 };
