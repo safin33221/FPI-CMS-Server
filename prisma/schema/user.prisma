@@ -3,7 +3,7 @@ model User {
     name String
 
     email    String @unique
-    loginId  String @unique 
+    loginId  String @unique
     password String
     role     Role
 
@@ -65,5 +65,6 @@ model Teacher {
     departmentId String
     department   Department @relation(fields: [departmentId], references: [id])
 
-    headedDepartment Department? @relation("DepartmentHead")
+    headedDepartment    Department?          @relation("DepartmentHead")
+    teachingAssignments TeachingAssignment[]
 }

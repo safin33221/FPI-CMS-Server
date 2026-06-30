@@ -1,0 +1,15 @@
+model TeachingAssignment {
+    id String @id @default(uuid())
+
+    teacherId String
+    teacher   Teacher @relation(fields: [teacherId], references: [id])
+
+    subjectId String
+    subject   Subject @relation(fields: [subjectId], references: [id])
+
+    assignedAt DateTime @default(now())
+
+    isActive Boolean @default(true)
+
+    @@unique([teacherId, subjectId])
+}

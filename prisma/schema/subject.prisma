@@ -1,0 +1,25 @@
+model Subject {
+  id String @id @default(uuid())
+
+  code String @unique // 66611
+  name String
+
+  credit Decimal? @db.Decimal(3,1)
+
+  theoryMarks  Int?
+  practicalMarks Int?
+  totalMarks Int?
+
+  semesterId String
+  semester   Semester @relation(fields: [semesterId], references: [id])
+
+  departmentId String
+  department Department @relation(fields: [departmentId], references: [id])
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  teachingAssignments TeachingAssignment[]
+}
