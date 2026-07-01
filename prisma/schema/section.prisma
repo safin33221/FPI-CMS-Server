@@ -1,0 +1,19 @@
+model Section {
+    id String @id @default(uuid())
+
+    name String // A, B, C
+
+    capacity Int?
+
+    departmentId String
+    department   Department @relation(fields: [departmentId], references: [id])
+
+    semesterId String
+    semester   Semester @relation(fields: [semesterId], references: [id])
+
+    sessionId String
+    session   AcademicSession @relation(fields: [sessionId], references: [id])
+
+    isActive Boolean @default(true)
+}
+

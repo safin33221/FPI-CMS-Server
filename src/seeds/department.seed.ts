@@ -42,6 +42,10 @@ export const seedDepartments = async () => {
             name: "Architecture Technology",
             code: "ARCH",
         },
+        {
+            name: "Non-Tech Department",
+            code: "NT",
+        }
     ];
 
     for (const department of departments) {

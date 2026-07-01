@@ -1,8 +1,10 @@
 model Department {
   id String @id @unique @default(uuid())
 
-  name String
-  code String @unique
+  name        String
+  code        String  @unique
+  description String?
+  isActive    Boolean @default(true)
 
   students Student[]
   teachers Teacher[]
@@ -10,7 +12,9 @@ model Department {
   headId String?  @unique
   head   Teacher? @relation("DepartmentHead", fields: [headId], references: [id])
 
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @default(now()) @updatedAt
-  subjects  Subject[]
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @default(now()) @updatedAt
+  subjectAssignments SubjectAssignment[]
+  sections           Section[]
+  subjects           Subject[]
 }

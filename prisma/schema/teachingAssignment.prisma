@@ -4,12 +4,14 @@ model TeachingAssignment {
     teacherId String
     teacher   Teacher @relation(fields: [teacherId], references: [id])
 
-    subjectId String
-    subject   Subject @relation(fields: [subjectId], references: [id])
+    subjectAssignmentId String
+    subjectAssignment   SubjectAssignment @relation(fields: [subjectAssignmentId], references: [id])
 
-    assignedAt DateTime @default(now())
+    createdAt         DateTime         @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
+    isActive          Boolean          @default(true)
+    academicSession   AcademicSession? @relation(fields: [academicSessionId], references: [id])
+    academicSessionId String?
 
-    isActive Boolean @default(true)
-
-    @@unique([teacherId, subjectId])
+    @@unique([teacherId, subjectAssignmentId])
 }

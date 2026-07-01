@@ -6,3 +6,22 @@
 6. Attendance Session
 7. QR Attendance
 8. Student Portal
+
+
+
+------------------------------------------------step
+Admin
+   │
+   ├── Create Master Subject
+   │
+Department Head
+   │
+   ├── Assign Subject → Semester
+   │
+   ├── Assign Teacher
+   │
+Teacher
+   │
+   ├── View Today's Classes
+   ├── Generate QR
+   └── Take Attendance

@@ -6,6 +6,7 @@ import { DepartmentRoutes } from "../modules/department/department.route.js";
 import { SemesterRoutes } from "../modules/semester/semester.route.js";
 import { StaffRoutes } from "../modules/staff/staff.route.js";
 import { StudentImportRoutes } from "../modules/student-Import/studentImport.route.js";
+import { SubjectRoutes } from "../modules/subject/subject.route.js";
 
 const router: Router = express.Router();
 
@@ -37,6 +38,10 @@ const modulesRoutes = [
     {
         path: "/student",
         route: StudentRoutes
+    },
+    {
+        path: "/subjects",
+        route: SubjectRoutes
     },
 ]
 

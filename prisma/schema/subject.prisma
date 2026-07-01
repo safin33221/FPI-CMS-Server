@@ -1,25 +1,44 @@
 model Subject {
   id String @id @default(uuid())
 
-  code String @unique // 66611
-  name String
+  code String @unique
+  name String @unique
 
-  credit Decimal? @db.Decimal(3,1)
+  credit Decimal? @db.Decimal(3, 1)
 
-  theoryMarks  Int?
+  theoryMarks    Int?
   practicalMarks Int?
-  totalMarks Int?
+  totalMarks     Int?
 
-  semesterId String
-  semester   Semester @relation(fields: [semesterId], references: [id])
-
-  departmentId String
-  department Department @relation(fields: [departmentId], references: [id])
+  // Owner Department
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id])
 
   isActive Boolean @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  subjectAssignments SubjectAssignment[]
+}
+
+model SubjectAssignment {
+  id String @id @default(uuid())
+
+  subjectId String
+  subject   Subject @relation(fields: [subjectId], references: [id])
+
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id])
+
+  semesterId String
+  semester   Semester @relation(fields: [semesterId], references: [id])
+
+  isActive            Boolean              @default(true)
   teachingAssignments TeachingAssignment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@unique([subjectId, departmentId, semesterId])
 }

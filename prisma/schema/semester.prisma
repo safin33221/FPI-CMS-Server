@@ -1,13 +1,14 @@
 model Semester {
-  id     String @id @default(uuid())
+  id String @id @default(uuid())
 
-  name   String // 1st Semester
+  name   String
   number Int    @unique
 
   students Student[]
 
-  subjects Subject[]
+  subjectAssignments SubjectAssignment[]
 
-  createdAt DateTime @default(now())
-
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+  sections  Section[]
 }

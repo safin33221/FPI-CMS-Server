@@ -1,0 +1,17 @@
+model AcademicSession {
+    id String @id @default(uuid())
+
+    name String @unique // 2025-26
+
+    startDate DateTime
+    endDate   DateTime
+
+    isCurrent Boolean @default(false)
+    isActive  Boolean @default(true)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    teachingAssignments TeachingAssignment[]
+    sections            Section[]
+}
