@@ -72,7 +72,7 @@ const commitImport = catchAsync(
                 "File ID is required."
             );
         }
-
+        console.log(fileId);
         const result =
             await studentImportService.commitImport(
                 fileId as string

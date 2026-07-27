@@ -94,8 +94,8 @@ const getAllStudent = async (query: {
       prisma.student.findMany({
         where,
 
-        skip,
-        take: limit,
+        // skip,
+        // take: limit,
 
         orderBy,
 
