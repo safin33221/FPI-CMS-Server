@@ -6,7 +6,7 @@ import { subjectAssignmentController } from "./subjectAssignment.controller.js";
 import { authenticate } from "../../middleware/Authenticate.js";
 import { authorize } from "../../middleware/authorize.js";
 
-const router = Router();
+const router: Router = Router();
 
 router.post(
     "/",

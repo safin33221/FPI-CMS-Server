@@ -6,7 +6,7 @@ import { studentImportController } from "./studentImport.controller.js";
 import { authenticate } from "../../middleware/Authenticate.js";
 import { createUploader } from "../../middleware/upload.js";
 
-const router = Router();
+const router: Router = Router();
 
 router.post(
     "/preview",

@@ -6,7 +6,7 @@ import { authenticate } from "../../middleware/Authenticate.js";
 import { Role } from "@prisma/client";
 import { authorize } from "../../middleware/authorize.js";
 
-const router = Router();
+const router: Router = Router();
 
 router.post(
     "/",

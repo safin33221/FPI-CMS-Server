@@ -1,10 +1,14 @@
 import fs from "fs";
 import path from "path";
 import multer from "multer";
+import type { RequestHandler } from "express";
 
-const uploadRoot = path.join(process.cwd(), "uploads");
 
-const ensureDir = (folder: string) => {
+const uploadRoot = process.env.VERCEL
+    ? path.join("/tmp", "uploads")
+    : path.join(process.cwd(), "uploads");
+
+const ensureDir = (folder: string): string => {
     const dir = path.join(uploadRoot, folder);
 
     if (!fs.existsSync(dir)) {
@@ -19,7 +23,7 @@ const ensureDir = (folder: string) => {
 export const createUploader = (
     fieldName: string,
     folder: "excel" | "images" | "documents"
-) => {
+): RequestHandler => { // 👈 Explicit RequestHandler type mapping (Fixes TS2883)
     const storage = multer.diskStorage({
         destination(req, file, cb) {
             cb(null, ensureDir(folder));
@@ -27,9 +31,7 @@ export const createUploader = (
 
         filename(req, file, cb) {
             const ext = path.extname(file.originalname);
-
-            const unique =
-                `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+            const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
 
             cb(null, `${unique}${ext}`);
         },
@@ -44,33 +46,20 @@ export const createUploader = (
 
         fileFilter(req, file, cb) {
             if (folder === "excel") {
-                const allowed = [
-                    ".xlsx",
-                    ".xls",
-                    ".csv",
-                ];
-
-                const ext = path
-                    .extname(file.originalname)
-                    .toLowerCase();
+                const allowed = [".xlsx", ".xls", ".csv"];
+                const ext = path.extname(file.originalname).toLowerCase();
 
                 if (!allowed.includes(ext)) {
                     return cb(
-                        new Error(
-                            "Only Excel or CSV files are allowed."
-                        )
+                        new Error("Only Excel or CSV files are allowed.")
                     );
                 }
             }
 
             if (folder === "images") {
-                if (
-                    !file.mimetype.startsWith("image/")
-                ) {
+                if (!file.mimetype.startsWith("image/")) {
                     return cb(
-                        new Error(
-                            "Only image files are allowed."
-                        )
+                        new Error("Only image files are allowed.")
                     );
                 }
             }
