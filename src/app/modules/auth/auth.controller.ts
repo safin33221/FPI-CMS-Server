@@ -4,6 +4,7 @@ import { authService } from "./auth.service.js";
 import sendResponse from "../../utils/sendResponse.js";
 import httpCode from "../../utils/httpStatus.js";
 import { envConfig } from "../../config/env.config.js";
+const isProduction = envConfig.NODE_ENV === "production";
 
 const registerStudent = catchAsync(
     async (req: Request, res: Response) => {
@@ -24,16 +25,16 @@ const login = catchAsync(async (req: Request, res: Response) => {
 
 
     res.cookie("accessToken", accessToken, {
-        secure: envConfig.NODE_ENV === "production",
+        secure: isProduction,
         httpOnly: true,
-        sameSite: "lax",
+        sameSite: "strict",
         maxAge: 1000 * 60 * 60 * 24, // 1 hour
     });
 
     res.cookie("refreshToken", refreshToken, {
-        secure: envConfig.NODE_ENV === "production",
+        secure: isProduction,
         httpOnly: true,
-        sameSite: "lax",
+        sameSite: "strict",
         maxAge: 1000 * 60 * 60 * 24 * 90, // 90 days
     });
     sendResponse(res, {
