@@ -16,6 +16,22 @@ const toRequiredString = (value: unknown) => {
   return str.length > 0 ? str : undefined;
 };
 
+const getSingleStudent = catchAsync(
+  async (req, res) => {
+    const result =
+      await StudentService.getSingleStudent(
+        req.params.id as string
+      );
+
+    sendResponse(res, {
+      status: httpCode.OK,
+      success: true,
+      message:
+        "Students retrieved successfully",
+      data: result
+    });
+  }
+);
 const getAllStudent = catchAsync(
   async (req, res) => {
     const result =
@@ -62,5 +78,6 @@ const verifyStudent = catchAsync(async (req: Request, res: Response) => {
 
 export const StudentController = {
   getAllStudent,
+  getSingleStudent,
   verifyStudent,
 };

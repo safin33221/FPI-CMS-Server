@@ -9,10 +9,15 @@ import { Role } from '@prisma/client';
 
 const router: Router = express.Router();
 
+router.get("/:id",
+    authenticate,
+    authorize(Role.ADMIN, Role.REGISTRAR),
+    StudentController.getSingleStudent)
 router.get("/",
     authenticate,
     authorize(Role.ADMIN, Role.REGISTRAR),
     StudentController.getAllStudent)
+
 
 router.post('/verify-student', StudentController.verifyStudent);
 

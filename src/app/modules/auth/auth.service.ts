@@ -55,17 +55,23 @@ const registerStudent = async (data: {
         throw new ApiError(httpCode.FORBIDDEN, "Email already in use")
     }
 
-    // 4. Hash password
+    // 4. Ensure required student data exists
+    const loginId = existingStudent.roll
+    if (!loginId) {
+        throw new ApiError(httpCode.BAD_REQUEST, "Student roll is missing")
+    }
+
+    // 5. Hash password
     const hashedPassword = await bcrypt.hash(data.password, 10)
 
-    // 5. Create user account
+    // 6. Create user account
     const user = await prisma.user.create({
         data: {
             email: data.email,
             password: hashedPassword,
             name: existingStudent.name,
             role: "STUDENT",
-            loginId: existingStudent.roll,
+            loginId,
             student: {
                 connect: {
                     id: data.studentId,

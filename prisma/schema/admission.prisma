@@ -1,0 +1,22 @@
+model Admission {
+    id String @id @default(uuid())
+
+    studentId String @unique
+    student   Student @relation(fields: [studentId], references: [id])
+
+    status AdmissionStatus @default(PENDING)
+
+    isFeeVerified      Boolean @default(false)
+    isDocumentVerified Boolean @default(false)
+
+    remarks String?
+
+    confirmedById String?
+    confirmedBy   User? @relation("AdmissionConfirmedBy", fields: [confirmedById], references: [id])
+
+    confirmedAt DateTime?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+

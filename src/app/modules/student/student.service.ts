@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, StudentStatus } from "@prisma/client";
 
 import { prisma } from "../../../lib/prisma.js";
 import ApiError from "../../error/ApiError.js";
@@ -11,9 +11,11 @@ const getAllStudent = async (query: {
   departmentId?: string;
   semesterId?: string;
   session?: string;
+  status?: StudentStatus;
   gender?: string;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
+
 }) => {
   const page = Number(query.page) || 1;
   const limit = Number(query.limit) || 10;
@@ -52,6 +54,9 @@ const getAllStudent = async (query: {
         },
       },
     ];
+  }
+  if (query.status) {
+    where.status = query.status;
   }
 
   //---------------------------------------
@@ -99,6 +104,7 @@ const getAllStudent = async (query: {
 
         orderBy,
 
+
         include: {
           department: {
             select: {
@@ -107,6 +113,8 @@ const getAllStudent = async (query: {
               code: true,
             },
           },
+
+
 
           semester: {
             select: {
@@ -147,6 +155,59 @@ const getAllStudent = async (query: {
   };
 };
 
+const getSingleStudent = async (id: string) => {
+  const student = await prisma.student.findUnique({
+    where: {
+      id,
+    },
+
+    include: {
+      department: {
+        select: {
+          id: true,
+          name: true,
+          code: true,
+        },
+      },
+
+      semester: {
+        select: {
+          id: true,
+          name: true,
+          number: true,
+        },
+      },
+
+      user: {
+        select: {
+          id: true,
+          email: true,
+          phone: true,
+          loginId: true,
+          isActive: true,
+          isVerified: true,
+        },
+      },
+
+      admission: {
+        include: {
+          confirmedBy: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!student) {
+    throw new ApiError(httpCode.NOT_FOUND, "Student not found");
+  }
+
+  return student;
+};
 
 const verifyStudent = async (data: {
   roll: string;
@@ -202,5 +263,6 @@ const verifyStudent = async (data: {
 
 export const StudentService = {
   getAllStudent,
+  getSingleStudent,
   verifyStudent
 };

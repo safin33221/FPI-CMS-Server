@@ -15,14 +15,15 @@ model User {
     profileImage String?
     gender       Gender?
     dateOfBirth  DateTime?
-    phone        String?   @unique
+    phone        String?     @unique
     address      String?
     city         String?
     district     String?
     student      Student?
     teacher      Teacher?
-    createdAt    DateTime  @default(now())
-    updatedAt    DateTime  @updatedAt
+    createdAt    DateTime    @default(now())
+    updatedAt    DateTime    @updatedAt
+    admissions   Admission[] @relation("AdmissionConfirmedBy")
 }
 
 model Student {
@@ -31,21 +32,22 @@ model Student {
     user   User?   @relation(fields: [userId], references: [id])
 
     name           String
-    roll           String    @unique
-    registrationNo String    @unique
+    roll           String?       @unique
+    registrationNo String?       @unique
     session        String?
     batch          String?
     phone          String?
     dob            DateTime?
-
+    status         StudentStatus @default(PENDING_ACTIVATION)
     // Academic relation 
-    departmentId String
-    department   Department @relation(fields: [departmentId], references: [id])
-    semesterId   String
-    semester     Semester   @relation(fields: [semesterId], references: [id])
+    departmentId   String
+    department     Department    @relation(fields: [departmentId], references: [id])
+    semesterId     String
+    semester       Semester      @relation(fields: [semesterId], references: [id])
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    createdAt DateTime   @default(now())
+    updatedAt DateTime   @updatedAt
+    admission Admission?
 }
 
 model Teacher {

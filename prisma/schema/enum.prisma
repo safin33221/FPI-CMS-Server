@@ -14,3 +14,18 @@ enum Gender {
   FEMALE
   OTHER
 }
+
+enum AdmissionStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+}
+
+enum StudentStatus {
+  PENDING_ACTIVATION
+  ACTIVE
+  SUSPENDED
+  GRADUATED
+  DROPPED
+  TRANSFERRED
+}
