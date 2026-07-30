@@ -218,12 +218,12 @@ const getPreview = async (fileId: string) => {
 };
 
 const commitImport = async (fileId: string) => {
-    const filePath = path.join(
-        process.cwd(),
-        "uploads",
-        "excel",
-        fileId
-    );
+    // 💡 Vercel Support: Vercel-এ /tmp/uploads এবং Local-এ uploads ফোল্ডার চেক করবে
+    const uploadRoot = process.env.VERCEL
+        ? path.join("/tmp", "uploads")
+        : path.join(process.cwd(), "uploads");
+
+    const filePath = path.join(uploadRoot, "excel", fileId);
 
     if (!fs.existsSync(filePath)) {
         throw new ApiError(
@@ -231,6 +231,10 @@ const commitImport = async (fileId: string) => {
             "Import file not found."
         );
     }
+
+    //--------------------------------------
+    // Read Workbook
+    //--------------------------------------
 
     const workbook = xlsx.readFile(filePath);
     const sheetName = workbook.SheetNames[0];
@@ -257,6 +261,10 @@ const commitImport = async (fileId: string) => {
         defval: "",
     });
 
+    //--------------------------------------
+    // Load Lookups
+    //--------------------------------------
+
     const [departments, semesters] = await Promise.all([
         prisma.department.findMany(),
         prisma.semester.findMany(),
@@ -266,44 +274,80 @@ const commitImport = async (fileId: string) => {
         semesters.map((semester) => [semester.number, semester.id])
     );
 
-    let imported = 0;
+    //--------------------------------------
+    // Prepare Data for Bulk Insertion
+    //--------------------------------------
 
-    await prisma.$transaction(async (tx) => {
-        for (const row of rows) {
-            const student = mapExcelRow(row);
+    const studentsToCreate: Array<{
+        name: string;
+        roll: string;
+        registrationNo: string;
+        phone: string | null;
+        session: string;
+        departmentId: string;
+        semesterId: string;
+    }> = [];
 
-            const department = findDepartment(
-                student.departmentCode,
-                departments
-            );
+    for (const row of rows) {
+        const student = mapExcelRow(row);
 
-            const semesterId = semesterMap.get(
-                student.semesterNumber
-            );
+        const department = findDepartment(
+            student.departmentCode,
+            departments
+        );
 
-            if (!department || !semesterId) {
-                continue;
-            }
+        const semesterId = semesterMap.get(
+            student.semesterNumber
+        );
 
-            await tx.student.create({
-                data: {
-                    name: student.fullName,
-                    roll: String(student.roll).trim(),
-                    registrationNo: String(student.registrationNo).trim(),
-                    phone: student.phone ? String(student.phone).trim() : null,
-                    session: student.session,
-                    departmentId: department.id,
-                    semesterId,
-                },
-            });
-
-            imported++;
+        if (!department || !semesterId) {
+            continue;
         }
-    });
+
+        const rollStr = String(student.roll ?? "").trim();
+        const regStr = String(student.registrationNo ?? "").trim();
+
+        // Roll বা Registration না থাকলে স্কিপ করবে
+        if (!rollStr || !regStr) {
+            continue;
+        }
+
+        studentsToCreate.push({
+            name: student.fullName,
+            roll: rollStr,
+            registrationNo: regStr,
+            phone: student.phone ? String(student.phone).trim() : null,
+            session: student.session,
+            departmentId: department.id,
+            semesterId,
+        });
+    }
+
+    //--------------------------------------
+    // Batch Insert (Prevents Transaction Timeout)
+    //--------------------------------------
+
+    let importedCount = 0;
+
+    if (studentsToCreate.length > 0) {
+        const result = await prisma.student.createMany({
+            data: studentsToCreate,
+            skipDuplicates: true, // DB Level ডুপ্লিকেট রোল/রেজিস্ট্রেশন থাকলে ক্র্যাশ না করে স্কিপ করবে
+        });
+
+        importedCount = result.count;
+    }
+
+    // (Optional) প্রসেস শেষে ফাইলটি ডিলিট করে দিতে পারেন
+    try {
+        await fs.promises.unlink(filePath);
+    } catch (error) {
+        console.error("Failed to delete temp file:", error);
+    }
 
     return {
-        imported,
-        skipped: rows.length - imported,
+        imported: importedCount,
+        skipped: rows.length - importedCount,
         total: rows.length,
     };
 };
