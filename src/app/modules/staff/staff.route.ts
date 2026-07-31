@@ -8,6 +8,12 @@ import { authorize } from "../../middleware/authorize.js";
 
 const router: Router = Router();
 
+router.get(
+    "/:id",
+    authenticate,
+    staffController.getSingleStaff
+);
+
 router.post(
     "/",
     authenticate,
@@ -22,9 +28,11 @@ router.get(
 );
 
 router.get(
-    "/:id",
+    "/department/teachers",
     authenticate,
-    staffController.getSingleStaff
+    staffController.getDepartmentTeachers
 );
+
+
 
 export const StaffRoutes = router;

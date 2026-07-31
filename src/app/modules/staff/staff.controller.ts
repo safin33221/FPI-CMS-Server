@@ -50,6 +50,24 @@ const getAllStaff = catchAsync(
         });
     }
 );
+const getDepartmentTeachers = catchAsync(
+    async (
+        req: Request,
+        res: Response,
+        _next: NextFunction
+    ) => {
+        const result =
+            await staffService.getDepartmentTeachers(req.user.id);
+
+        sendResponse(res, {
+            status: httpCode.OK,
+            success: true,
+            message:
+                "Staff retrieved successfully",
+            data: result,
+        });
+    }
+);
 
 const getSingleStaff = catchAsync(
     async (
@@ -75,5 +93,6 @@ const getSingleStaff = catchAsync(
 export const staffController = {
     createStaff,
     getAllStaff,
+    getDepartmentTeachers,
     getSingleStaff,
 };

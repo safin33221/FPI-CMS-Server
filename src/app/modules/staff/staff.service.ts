@@ -195,6 +195,52 @@ const getAllStaff = async () => {
     });
 };
 
+const getDepartmentTeachers = async (departmentHeadId: string) => {
+    // Department Head-এর department বের করা
+    const departmentHead = await prisma.teacher.findUnique({
+        where: {
+            userId: departmentHeadId,
+        },
+        select: {
+            departmentId: true,
+        },
+    });
+
+    if (!departmentHead?.departmentId) {
+        throw new Error("Department not found for this department head.");
+    }
+
+    // ঐ department-এর সব teacher
+    return prisma.teacher.findMany({
+        where: {
+            departmentId: departmentHead.departmentId,
+
+        },
+        include: {
+            user: {
+                select: {
+                    name: true,
+                    loginId: true,
+                    email: true,
+                    phone: true
+                }
+            },
+            department: {
+                select: {
+                    name: true,
+                    code: true
+                }
+            }
+        }
+
+
+
+        // orderBy: {
+        //     name: "asc",
+        // },
+    });
+};
+
 const getSingleStaff = async (
     staffId: string
 ) => {
@@ -226,5 +272,6 @@ const getSingleStaff = async (
 export const staffService = {
     createStaff,
     getAllStaff,
+    getDepartmentTeachers,
     getSingleStaff,
 };
