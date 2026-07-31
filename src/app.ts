@@ -11,12 +11,34 @@ const app: Application = express();
 
 app.use(cookieParser())
 app.use(express.json());
+// Define allowed origins
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5173', // Include if using Vite locally
+  process.env.FRONTEND_URL,
+  "https://fpi-cms.vercel.app" // Add your deployed frontend URL via environment variable
+].filter(Boolean) as string[];
+
 app.use(
   cors({
-    origin: "http://localhost:3000", 
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, or Postman)
+      if (!origin) return callback(null, true);
+
+      // Check if origin is in allowed array or matches a Vercel preview URL pattern
+      const isAllowed = allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin);
+
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS policy does not allow access from origin: ${origin}`));
+      }
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   })
-)
+);
 app.use(express.urlencoded({ extended: true }));
 
 
