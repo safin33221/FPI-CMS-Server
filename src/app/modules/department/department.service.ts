@@ -1,5 +1,5 @@
 import { prisma } from "../../../lib/prisma.js";
-import ApiError from "../../error/ApiError.js";
+import AppError from "../../error/AppError.js";
 import httpCode from "../../utils/httpStatus.js";
 
 const createDepartment = async (payload: {
@@ -23,7 +23,7 @@ const createDepartment = async (payload: {
         });
 
     if (existingDepartment) {
-        throw new ApiError(
+        throw new AppError(
             httpCode.CONFLICT,
             "Department already exists"
         );
@@ -38,7 +38,7 @@ const createDepartment = async (payload: {
             });
 
         if (!teacher) {
-            throw new ApiError(
+            throw new AppError(
                 httpCode.NOT_FOUND,
                 "Department head not found"
             );
@@ -130,7 +130,7 @@ const getSingleDepartment = async (
         });
 
     if (!department) {
-        throw new ApiError(
+        throw new AppError(
             httpCode.NOT_FOUND,
             "Department not found"
         );
@@ -156,7 +156,7 @@ const updateDepartment = async (
         });
 
     if (!department) {
-        throw new ApiError(
+        throw new AppError(
             httpCode.NOT_FOUND,
             "Department not found"
         );
@@ -171,7 +171,7 @@ const updateDepartment = async (
             });
 
         if (!teacher) {
-            throw new ApiError(
+            throw new AppError(
                 httpCode.NOT_FOUND,
                 "Department head not found"
             );
@@ -216,7 +216,7 @@ const deleteDepartment = async (
         });
 
     if (!department) {
-        throw new ApiError(
+        throw new AppError(
             httpCode.NOT_FOUND,
             "Department not found"
         );
@@ -226,7 +226,7 @@ const deleteDepartment = async (
         department._count.students > 0 ||
         department._count.teachers > 0
     ) {
-        throw new ApiError(
+        throw new AppError(
             httpCode.BAD_REQUEST,
             "Cannot delete department with students or teachers"
         );

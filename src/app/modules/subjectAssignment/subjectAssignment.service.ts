@@ -1,6 +1,6 @@
 import { prisma } from "../../../lib/prisma.js";
 
-import ApiError from "../../error/ApiError.js";
+import AppError from "../../error/AppError.js";
 import httpCode from "../../utils/httpStatus.js";
 
 const assignSubjects = async (
@@ -13,7 +13,7 @@ const assignSubjects = async (
         !Array.isArray(payload.subjects) ||
         payload.subjects.length === 0
     ) {
-        throw new ApiError(
+        throw new AppError(
             httpCode.BAD_REQUEST,
             "At least one subject is required"
         );
@@ -31,7 +31,7 @@ const assignSubjects = async (
         });
 
     if (!teacher) {
-        throw new ApiError(
+        throw new AppError(
             httpCode.NOT_FOUND,
             "Department not found"
         );
@@ -45,7 +45,7 @@ const assignSubjects = async (
         });
 
     if (!semester) {
-        throw new ApiError(
+        throw new AppError(
             httpCode.NOT_FOUND,
             "Semester not found"
         );
@@ -63,7 +63,7 @@ const assignSubjects = async (
                 });
 
             if (!subject) {
-                throw new ApiError(
+                throw new AppError(
                     httpCode.NOT_FOUND,
                     "Subject not found"
                 );
@@ -131,7 +131,7 @@ const getAllSubjectAssignments =
             });
 
         if (!user) {
-            throw new ApiError(
+            throw new AppError(
                 httpCode.NOT_FOUND,
                 "User not found"
             );
@@ -208,7 +208,7 @@ const getSingleSubjectAssignment =
             });
 
         if (!assignment) {
-            throw new ApiError(
+            throw new AppError(
                 httpCode.NOT_FOUND,
                 "Assignment not found"
             );
@@ -232,7 +232,7 @@ const deleteSubjectAssignment =
             });
 
         if (!assignment) {
-            throw new ApiError(
+            throw new AppError(
                 httpCode.NOT_FOUND,
                 "Assignment not found"
             );
@@ -243,7 +243,7 @@ const deleteSubjectAssignment =
                 .teachingAssignments
                 .length > 0
         ) {
-            throw new ApiError(
+            throw new AppError(
                 httpCode.BAD_REQUEST,
                 "Teacher already assigned."
             );

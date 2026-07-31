@@ -1,7 +1,7 @@
 import { Prisma, StudentStatus } from "@prisma/client";
 
 import { prisma } from "../../../lib/prisma.js";
-import ApiError from "../../error/ApiError.js";
+import AppError from "../../error/AppError.js";
 import httpCode from "../../utils/httpStatus.js";
 
 const getAllStudent = async (query: {
@@ -203,7 +203,7 @@ const getSingleStudent = async (id: string) => {
   });
 
   if (!student) {
-    throw new ApiError(httpCode.NOT_FOUND, "Student not found");
+    throw new AppError(httpCode.NOT_FOUND, "Student not found");
   }
 
   return student;
@@ -244,7 +244,7 @@ const verifyStudent = async (data: {
   })
 
   if (!student) {
-    return new ApiError(httpCode.NOT_FOUND, "No matching student found. Please check your credentials.");
+    return new AppError(httpCode.NOT_FOUND, "No matching student found. Please check your credentials.");
   }
   return {
     success: true,

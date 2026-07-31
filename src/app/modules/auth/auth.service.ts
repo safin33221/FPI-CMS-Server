@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt"
 import { prisma } from "../../../lib/prisma.js"
-import ApiError from "../../error/ApiError.js"
+import AppError from "../../error/AppError.js"
 import httpCode from "../../utils/httpStatus.js"
 import { generateTokens } from "../../utils/generateToken.js"
 
@@ -25,7 +25,7 @@ const registerStudent = async (data: {
         })
 
     if (!existingStudent) {
-        throw new ApiError(httpCode.NOT_FOUND, "Student not found")
+        throw new AppError(httpCode.NOT_FOUND, "Student not found")
     }
 
     // 2. Check already registered
@@ -40,7 +40,7 @@ const registerStudent = async (data: {
         })
 
     if (existingUser) {
-        return new ApiError(httpCode.FORBIDDEN, "Student account already registered")
+        return new AppError(httpCode.FORBIDDEN, "Student account already registered")
     }
 
     // 3. Check duplicate email
@@ -52,13 +52,13 @@ const registerStudent = async (data: {
         })
 
     if (existingEmail) {
-        throw new ApiError(httpCode.FORBIDDEN, "Email already in use")
+        throw new AppError(httpCode.FORBIDDEN, "Email already in use")
     }
 
     // 4. Ensure required student data exists
     const loginId = existingStudent.roll
     if (!loginId) {
-        throw new ApiError(httpCode.BAD_REQUEST, "Student roll is missing")
+        throw new AppError(httpCode.BAD_REQUEST, "Student roll is missing")
     }
 
     // 5. Hash password
@@ -160,7 +160,7 @@ const login = async (data: {
     //----------------------------------------
 
     if (!user || !user.password) {
-        throw new ApiError(
+        throw new AppError(
             httpCode.UNAUTHORIZED,
             "Invalid credentials"
         );
@@ -177,7 +177,7 @@ const login = async (data: {
         );
 
     if (!isPasswordMatched) {
-        throw new ApiError(
+        throw new AppError(
             httpCode.UNAUTHORIZED,
             "Invalid credentials"
         );

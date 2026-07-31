@@ -1,5 +1,5 @@
 import { prisma } from "../../../lib/prisma.js";
-import ApiError from "../../error/ApiError.js";
+import AppError from "../../error/AppError.js";
 import httpCode from "../../utils/httpStatus.js";
 
 
@@ -89,7 +89,7 @@ const getMyProfile = async (userId: string) => {
     });
 
     if (!user) {
-        throw new ApiError(httpCode.NOT_FOUND, "User not found");
+        throw new AppError(httpCode.NOT_FOUND, "User not found");
     }
 
     return user;

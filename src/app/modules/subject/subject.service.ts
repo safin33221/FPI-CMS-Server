@@ -1,5 +1,5 @@
 import { prisma } from "../../../lib/prisma.js";
-import ApiError from "../../error/ApiError.js";
+import AppError from "../../error/AppError.js";
 import httpCode from "../../utils/httpStatus.js";
 const createSubjects = async (
     payload: any,
@@ -10,7 +10,7 @@ const createSubjects = async (
         !Array.isArray(payload.subjects) ||
         payload.subjects.length === 0
     ) {
-        throw new ApiError(
+        throw new AppError(
             httpCode.BAD_REQUEST,
             "At least one subject is required"
         );
@@ -28,7 +28,7 @@ const createSubjects = async (
         });
 
     if (!teacher) {
-        throw new ApiError(
+        throw new AppError(
             httpCode.NOT_FOUND,
             "Department not found for this user"
         );
@@ -53,7 +53,7 @@ const createSubjects = async (
                 });
 
             if (existingSubject) {
-                throw new ApiError(
+                throw new AppError(
                     httpCode.BAD_REQUEST,
                     `Subject "${subject.code}" already exists`
                 );
@@ -110,7 +110,7 @@ const getAllSubjects = async (
     });
 
     if (!user) {
-        throw new ApiError(
+        throw new AppError(
             httpCode.NOT_FOUND,
             "User not found"
         );
@@ -120,7 +120,7 @@ const getAllSubjects = async (
 
     if (user.role === "DEPARTMENT_HEAD") {
         if (!user.teacher) {
-            throw new ApiError(
+            throw new AppError(
                 httpCode.NOT_FOUND,
                 "Department not found"
             );
@@ -201,7 +201,7 @@ const getSingleSubject = async (
         });
 
     if (!subject) {
-        throw new ApiError(
+        throw new AppError(
             httpCode.NOT_FOUND,
             "Subject not found"
         );
@@ -222,7 +222,7 @@ const updateSubject = async (
         });
 
     if (!subject) {
-        throw new ApiError(
+        throw new AppError(
             httpCode.NOT_FOUND,
             "Subject not found"
         );
@@ -247,7 +247,7 @@ const updateSubject = async (
         });
 
     if (existingSubject) {
-        throw new ApiError(
+        throw new AppError(
             httpCode.BAD_REQUEST,
             "Subject already exists"
         );
@@ -294,7 +294,7 @@ const deleteSubject = async (
         });
 
     if (!subject) {
-        throw new ApiError(
+        throw new AppError(
             httpCode.NOT_FOUND,
             "Subject not found"
         );
@@ -304,7 +304,7 @@ const deleteSubject = async (
         subject.subjectAssignments.length >
         0
     ) {
-        throw new ApiError(
+        throw new AppError(
             httpCode.BAD_REQUEST,
             "This subject is already assigned and cannot be deleted."
         );

@@ -12,7 +12,7 @@ import { studentImportService } from "./studentImport.service.js";
 import catchAsync from "../../utils/catchAsync.js";
 import sendResponse from "../../utils/sendResponse.js";
 import httpCode from "../../utils/httpStatus.js";
-import ApiError from "../../error/ApiError.js";
+import AppError from "../../error/AppError.js";
 
 const previewImport = catchAsync(
     async (
@@ -67,7 +67,7 @@ const commitImport = catchAsync(
         const { fileId } = req.params;
 
         if (!fileId) {
-            throw new ApiError(
+            throw new AppError(
                 httpCode.BAD_REQUEST,
                 "File ID is required."
             );

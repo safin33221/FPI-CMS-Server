@@ -4,7 +4,7 @@
 
 import bcrypt from "bcrypt";
 import { prisma } from "../../../lib/prisma.js";
-import ApiError from "../../error/ApiError.js";
+import AppError from "../../error/AppError.js";
 import httpCode from "../../utils/httpStatus.js";
 import { Role } from "@prisma/client";
 
@@ -19,7 +19,7 @@ const STAFF_ROLES: Role[] = [
 
 export const createStaff = async (payload: any) => {
     if (!STAFF_ROLES.includes(payload.role)) {
-        throw new ApiError(
+        throw new AppError(
             httpCode.BAD_REQUEST,
             "Invalid staff role"
         );
@@ -35,7 +35,7 @@ export const createStaff = async (payload: any) => {
     });
 
     if (existingUser) {
-        throw new ApiError(
+        throw new AppError(
             httpCode.BAD_REQUEST,
             "Email or phone already exists"
         );
@@ -53,7 +53,7 @@ export const createStaff = async (payload: any) => {
             });
 
         if (!department) {
-            throw new ApiError(
+            throw new AppError(
                 httpCode.NOT_FOUND,
                 "Department not found"
             );
@@ -214,7 +214,7 @@ const getSingleStaff = async (
         });
 
     if (!staff) {
-        throw new ApiError(
+        throw new AppError(
             httpCode.NOT_FOUND,
             "Staff not found"
         );

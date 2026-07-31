@@ -1,5 +1,5 @@
 import { prisma } from "../../../lib/prisma.js";
-import ApiError from "../../error/ApiError.js";
+import AppError from "../../error/AppError.js";
 import httpCode from "../../utils/httpStatus.js";
 
 const getAllSemester = async () => {
@@ -37,7 +37,7 @@ const getSingleSemester = async (
         });
 
     if (!semester) {
-        throw new ApiError(
+        throw new AppError(
             httpCode.NOT_FOUND,
             "Semester not found"
         );

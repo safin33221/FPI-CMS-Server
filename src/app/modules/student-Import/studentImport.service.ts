@@ -11,7 +11,7 @@ import type {
     SemesterLookup,
     RawExcelRow,
 } from "./studentImport.types.js";
-import ApiError from "../../error/ApiError.js";
+import AppError from "../../error/AppError.js";
 import httpCode from "../../utils/httpStatus.js";
 import { prisma } from "../../../lib/prisma.js";
 import { findDepartment } from "../../utils/studentImport.utils.js";
@@ -24,7 +24,7 @@ const validateHeaders = (sheet: xlsx.WorkSheet) => {
     const headers = rows[0] as string[];
 
     if (!headers?.length) {
-        throw new ApiError(
+        throw new AppError(
             httpCode.BAD_REQUEST,
             "Excel file is empty."
         );
@@ -35,7 +35,7 @@ const validateHeaders = (sheet: xlsx.WorkSheet) => {
     );
 
     if (missingHeaders.length > 0) {
-        throw new ApiError(
+        throw new AppError(
             httpCode.BAD_REQUEST,
             `Missing Excel columns: ${missingHeaders.join(", ")}`
         );
@@ -105,7 +105,7 @@ const previewImport = async (filePath: string, fileId: string) => {
     const sheetName = workbook.SheetNames[0];
 
     if (!sheetName) {
-        throw new ApiError(
+        throw new AppError(
             httpCode.BAD_REQUEST,
             "No worksheet found."
         );
@@ -114,7 +114,7 @@ const previewImport = async (filePath: string, fileId: string) => {
     const sheet = workbook.Sheets[sheetName];
 
     if (!sheet) {
-        throw new ApiError(
+        throw new AppError(
             httpCode.BAD_REQUEST,
             "Worksheet not found."
         );
@@ -208,7 +208,7 @@ const getPreview = async (fileId: string) => {
     );
 
     if (!fs.existsSync(filePath)) {
-        throw new ApiError(
+        throw new AppError(
             httpCode.NOT_FOUND,
             "Import file not found."
         );
@@ -226,7 +226,7 @@ const commitImport = async (fileId: string) => {
     const filePath = path.join(uploadRoot, "excel", fileId);
 
     if (!fs.existsSync(filePath)) {
-        throw new ApiError(
+        throw new AppError(
             httpCode.NOT_FOUND,
             "Import file not found."
         );
@@ -240,7 +240,7 @@ const commitImport = async (fileId: string) => {
     const sheetName = workbook.SheetNames[0];
 
     if (!sheetName) {
-        throw new ApiError(
+        throw new AppError(
             httpCode.BAD_REQUEST,
             "No worksheet found."
         );
@@ -249,7 +249,7 @@ const commitImport = async (fileId: string) => {
     const sheet = workbook.Sheets[sheetName];
 
     if (!sheet) {
-        throw new ApiError(
+        throw new AppError(
             httpCode.BAD_REQUEST,
             "Worksheet not found."
         );

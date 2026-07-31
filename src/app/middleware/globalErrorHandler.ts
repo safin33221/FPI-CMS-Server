@@ -6,7 +6,7 @@ import {
 
 import httpCode from "../utils/httpStatus.js";
 import type { NextFunction, Request, Response } from "express";
-import ApiError from "../error/ApiError.js";
+import AppError from "../error/AppError.js";
 
 
 const globalErrorHandler = (
@@ -22,7 +22,7 @@ const globalErrorHandler = (
     /* =======================
        Custom API Errors
     ======================= */
-    if (err instanceof ApiError) {
+    if (err instanceof AppError) {
         statusCode = err.statusCode;
         message = err.message;
     }
