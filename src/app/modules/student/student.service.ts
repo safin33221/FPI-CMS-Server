@@ -20,6 +20,23 @@ const getAllStudent = async (query: {
   const page = Number(query.page) || 1;
   const limit = Number(query.limit) || 10;
   const skip = (page - 1) * limit;
+  console.log("Query Department:", query.departmentId);
+
+
+  const all = await prisma.student.findMany({
+
+    select: {
+      name: true,
+      departmentId: true,
+      department: {
+        select: {
+          name: true
+        }
+      }
+    },
+  });
+
+  console.table(all);
 
   const where: Prisma.StudentWhereInput = {};
 

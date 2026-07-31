@@ -15,7 +15,7 @@ router.get("/:id",
     StudentController.getSingleStudent)
 router.get("/",
     authenticate,
-    authorize(Role.ADMIN, Role.REGISTRAR),
+    authorize(Role.ADMIN, Role.REGISTRAR, Role.DEPARTMENT_HEAD),
     StudentController.getAllStudent)
 
 
