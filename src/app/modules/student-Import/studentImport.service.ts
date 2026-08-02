@@ -100,7 +100,20 @@ const generatePreview = async ({
     };
 };
 
-const previewImport = async (filePath: string, fileId: string) => {
+const previewImport = async (fileId: string) => {
+
+    const uploadRoot = process.env.VERCEL
+        ? "/tmp/uploads"
+        : path.join(process.cwd(), "uploads");
+
+
+    const filePath = path.join(
+        uploadRoot,
+        "excel",
+        fileId
+    );
+
+
     const workbook = xlsx.readFile(filePath);
     const sheetName = workbook.SheetNames[0];
 
@@ -200,12 +213,18 @@ const previewImport = async (filePath: string, fileId: string) => {
 };
 
 const getPreview = async (fileId: string) => {
+
+    const uploadRoot = process.env.VERCEL
+        ? "/tmp/uploads"
+        : path.join(process.cwd(), "uploads");
+
+
     const filePath = path.join(
-        process.cwd(),
-        "uploads",
+        uploadRoot,
         "excel",
         fileId
     );
+
 
     if (!fs.existsSync(filePath)) {
         throw new AppError(
@@ -214,16 +233,23 @@ const getPreview = async (fileId: string) => {
         );
     }
 
-    return previewImport(filePath, fileId);
+
+    return previewImport(fileId);
 };
 
 const commitImport = async (fileId: string) => {
     // 💡 Vercel Support: Vercel-এ /tmp/uploads এবং Local-এ uploads ফোল্ডার চেক করবে
     const uploadRoot = process.env.VERCEL
-        ? path.join("/tmp", "uploads")
+        ? "/tmp/uploads"
         : path.join(process.cwd(), "uploads");
 
-    const filePath = path.join(uploadRoot, "excel", fileId);
+
+    const filePath = path.join(
+        uploadRoot,
+        "excel",
+        fileId
+    );
+
 
     if (!fs.existsSync(filePath)) {
         throw new AppError(

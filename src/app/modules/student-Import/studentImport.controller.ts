@@ -4,15 +4,12 @@ import type {
     Response,
 } from "express";
 
-import fs from "fs/promises";
-
-
-
 import { studentImportService } from "./studentImport.service.js";
 import catchAsync from "../../utils/catchAsync.js";
 import sendResponse from "../../utils/sendResponse.js";
 import httpCode from "../../utils/httpStatus.js";
 import AppError from "../../error/AppError.js";
+
 
 const previewImport = catchAsync(
     async (
@@ -22,15 +19,18 @@ const previewImport = catchAsync(
     ) => {
 
         if (!req.file) {
-            throw new Error("Excel file is required");
+            throw new AppError(
+                httpCode.BAD_REQUEST,
+                "Excel file is required."
+            );
         }
+
 
         const result =
             await studentImportService.previewImport(
-                req.file.path,
-                req.file.filename,
+                req.file.filename
             );
-        console.log(req.file)
+
 
         sendResponse(res, {
             status: httpCode.OK,
@@ -42,21 +42,42 @@ const previewImport = catchAsync(
     }
 );
 
+
+
 const getPreview = catchAsync(
-    async (req, res) => {
+    async (
+        req: Request,
+        res: Response
+    ) => {
+
+        const { fileId } = req.params;
+
+
+        if (!fileId) {
+            throw new AppError(
+                httpCode.BAD_REQUEST,
+                "File ID is required."
+            );
+        }
+
+
         const result =
             await studentImportService.getPreview(
-                req.params.fileId as string
+                fileId as string
             );
+
 
         sendResponse(res, {
             success: true,
-            status: 200,
-            message: "Preview fetched successfully",
+            status: httpCode.OK,
+            message:
+                "Preview fetched successfully",
             data: result,
         });
     }
 );
+
+
 
 const commitImport = catchAsync(
     async (
@@ -66,17 +87,20 @@ const commitImport = catchAsync(
 
         const { fileId } = req.params;
 
+
         if (!fileId) {
             throw new AppError(
                 httpCode.BAD_REQUEST,
                 "File ID is required."
             );
         }
-        console.log(fileId);
+
+
         const result =
             await studentImportService.commitImport(
                 fileId as string
             );
+
 
         sendResponse(res, {
             status: httpCode.CREATED,
@@ -88,8 +112,10 @@ const commitImport = catchAsync(
     }
 );
 
+
+
 export const studentImportController = {
     previewImport,
     commitImport,
-    getPreview
+    getPreview,
 };
