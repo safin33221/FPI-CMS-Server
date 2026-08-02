@@ -11,7 +11,7 @@ const app: Application = express();
 
 app.use(cookieParser())
 app.use(express.json());
-// Define allowed origins
+
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5173', // Include if using Vite locally
