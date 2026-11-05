@@ -11,6 +11,7 @@ import { SubjectAssignmentRoutes } from "../modules/subjectAssignment/subjectAss
 import { AdmissionRoute } from "../modules/admisson/admission.route.js";
 import { RoomRoutes } from "../modules/room/room.route.js";
 import { RoutineRoutes } from "../modules/routine/routine.route.js";
+import { AcademicSessionRoutes } from "../modules/academicSession/academicSession.route.js";
 
 const router: Router = express.Router();
 
@@ -62,6 +63,10 @@ const modulesRoutes = [
     {
         path: "/routines",
         route: RoutineRoutes
+    },
+    {
+        path: "/academic-sessions",
+        route: AcademicSessionRoutes
     },
 ]
 

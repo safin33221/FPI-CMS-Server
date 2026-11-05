@@ -192,7 +192,7 @@ const getSingleSubject = async (
                                     },
                                 },
 
-                                session: true,
+                                academicSession: true,
                             },
                         },
                     },
