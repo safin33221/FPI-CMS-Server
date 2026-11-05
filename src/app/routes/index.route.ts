@@ -9,6 +9,9 @@ import { StudentImportRoutes } from "../modules/student-Import/studentImport.rou
 import { SubjectRoutes } from "../modules/subject/subject.route.js";
 import { SubjectAssignmentRoutes } from "../modules/subjectAssignment/subjectAssignment.route.js";
 import { AdmissionRoute } from "../modules/admisson/admission.route.js";
+import { RoomRoutes } from "../modules/room/room.route.js";
+import { RoutineRoutes } from "../modules/routine/routine.route.js";
+import { AcademicSessionRoutes } from "../modules/academicSession/academicSession.route.js";
 
 const router: Router = express.Router();
 
@@ -52,6 +55,18 @@ const modulesRoutes = [
     {
         path: "/admissions",
         route: AdmissionRoute
+    },
+    {
+        path: "/rooms",
+        route: RoomRoutes
+    },
+    {
+        path: "/routines",
+        route: RoutineRoutes
+    },
+    {
+        path: "/academic-sessions",
+        route: AcademicSessionRoutes
     },
 ]
 

@@ -29,3 +29,13 @@ enum StudentStatus {
   DROPPED
   TRANSFERRED
 }
+
+enum Weekday {
+  SATURDAY
+  SUNDAY
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+}

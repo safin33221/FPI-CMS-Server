@@ -34,8 +34,7 @@ const getSingleStudent = catchAsync(
 );
 const getAllStudent = catchAsync(
   async (req, res) => {
-    console.log(req.originalUrl);
-    console.log(req.query);
+
     const result =
       await StudentService.getAllStudent(
         req.query

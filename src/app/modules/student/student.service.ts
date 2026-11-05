@@ -20,7 +20,6 @@ const getAllStudent = async (query: {
   const page = Number(query.page) || 1;
   const limit = Number(query.limit) || 10;
   const skip = (page - 1) * limit;
-  console.log("Query Department:", query.departmentId);
 
 
   const all = await prisma.student.findMany({
@@ -232,9 +231,6 @@ const verifyStudent = async (data: {
   phone: string;
 }) => {
 
-  console.log(data.roll);
-  console.log(data.registrationNo);
-  console.log(data.phone);
 
   const student = await prisma.student.findFirst({
     where: {

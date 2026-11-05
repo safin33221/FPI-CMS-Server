@@ -192,7 +192,7 @@ const getSingleSubject = async (
                                     },
                                 },
 
-                                session: true,
+                                academicSession: true,
                             },
                         },
                     },
@@ -208,6 +208,170 @@ const getSingleSubject = async (
     }
 
     return subject;
+};
+
+const assignTeacher = async (
+    subjectId: string,
+    payload: {
+        teacherId?: string;
+        semesterId?: string;
+        subjectAssignmentId?: string;
+        academicSessionId?: string;
+        sessionId?: string;
+    },
+    currentUser: { id: string; role: string }
+) => {
+    if (!payload.teacherId) {
+        throw new AppError(
+            httpCode.BAD_REQUEST,
+            "teacherId is required"
+        );
+    }
+
+    const teacherId = payload.teacherId;
+    const subjectAssignmentId =
+        payload.subjectAssignmentId;
+    const semesterId = payload.semesterId;
+    const academicSessionId =
+        payload.academicSessionId ?? payload.sessionId;
+
+    const subject = await prisma.subject.findUnique({
+            where: { id: subjectId },
+            select: { id: true },
+        });
+
+        if (!subject) {
+            throw new AppError(
+                httpCode.NOT_FOUND,
+                "Subject not found"
+            );
+        }
+
+    const departmentHead = currentUser.role === "DEPARTMENT_HEAD"
+        ? await prisma.teacher.findUnique({
+                where: { userId: currentUser.id },
+                select: { departmentId: true },
+            })
+            : null;
+
+    if (currentUser.role === "DEPARTMENT_HEAD" && !departmentHead) {
+            throw new AppError(
+                httpCode.FORBIDDEN,
+                "Department head profile not found"
+            );
+        }
+
+    const subjectAssignments =
+        await prisma.subjectAssignment.findMany({
+                where: {
+                    subjectId,
+                    ...(subjectAssignmentId
+                        ? { id: subjectAssignmentId }
+                        : semesterId
+                            ? { semesterId }
+                            : {}),
+                    ...(departmentHead
+                        ? { departmentId: departmentHead.departmentId }
+                        : {}),
+                },
+                include: {
+                    subject: true,
+                    semester: true,
+                    department: true,
+                },
+                take: 2,
+            });
+
+    if (subjectAssignments.length === 0) {
+            throw new AppError(
+                httpCode.NOT_FOUND,
+                "Subject is not assigned to the specified semester"
+            );
+        }
+
+    if (subjectAssignments.length > 1) {
+            throw new AppError(
+                httpCode.BAD_REQUEST,
+                "semesterId is required because this subject is assigned to multiple semesters"
+            );
+        }
+
+    const subjectAssignment = subjectAssignments[0]!;
+
+    const teacher = await prisma.teacher.findUnique({
+            where: { id: teacherId },
+            select: {
+                id: true,
+                departmentId: true,
+            },
+        });
+
+    if (!teacher) {
+            throw new AppError(
+                httpCode.NOT_FOUND,
+                "Teacher not found"
+            );
+        }
+
+    if (teacher.departmentId !== subjectAssignment.departmentId) {
+            throw new AppError(
+                httpCode.BAD_REQUEST,
+                "Teacher must belong to the subject's department"
+            );
+        }
+
+    if (academicSessionId) {
+        const academicSession =
+            await prisma.academicSession.findUnique({
+                    where: { id: academicSessionId },
+                    select: { id: true },
+                });
+
+        if (!academicSession) {
+                throw new AppError(
+                    httpCode.NOT_FOUND,
+                    "Academic session not found"
+                );
+        }
+    }
+
+    await prisma.teachingAssignment.updateMany({
+        where: {
+            subjectAssignmentId: subjectAssignment.id,
+            teacherId: { not: teacher.id },
+            isActive: true,
+        },
+        data: { isActive: false },
+    });
+
+    return prisma.teachingAssignment.upsert({
+        where: {
+            teacherId_subjectAssignmentId: {
+                teacherId: teacher.id,
+                subjectAssignmentId: subjectAssignment.id,
+            },
+        },
+        update: {
+            isActive: true,
+            academicSessionId: academicSessionId ?? null,
+        },
+        create: {
+            teacherId: teacher.id,
+            subjectAssignmentId: subjectAssignment.id,
+            academicSessionId: academicSessionId ?? null,
+        },
+        include: {
+            teacher: { include: { user: true } },
+            subjectAssignment: {
+                include: {
+                    subject: true,
+                    semester: true,
+                    department: true,
+                },
+            },
+            academicSession: true,
+        },
+    });
 };
 
 const updateSubject = async (
@@ -323,6 +487,7 @@ export const subjectService = {
     createSubjects,
     getAllSubjects,
     getSingleSubject,
+    assignTeacher,
     updateSubject,
     deleteSubject,
 };

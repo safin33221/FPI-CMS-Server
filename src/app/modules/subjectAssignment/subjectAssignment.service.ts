@@ -7,7 +7,7 @@ const assignSubjects = async (
     payload: any,
     userId: string
 ) => {
-    console.log(payload);
+
     if (
         !payload.subjects ||
         !Array.isArray(payload.subjects) ||
@@ -156,6 +156,9 @@ const getAllSubjectAssignments =
                 department: true,
 
                 teachingAssignments: {
+                    where: {
+                        isActive: true,
+                    },
                     include: {
                         teacher: {
                             include: {
@@ -196,6 +199,9 @@ const getSingleSubjectAssignment =
                     department: true,
 
                     teachingAssignments: {
+                        where: {
+                            isActive: true,
+                        },
                         include: {
                             teacher: {
                                 include: {
