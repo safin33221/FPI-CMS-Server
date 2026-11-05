@@ -5,5 +5,3 @@ node_modules
 /src/generated/prisma
 dist
 /uploads
-
-check_room.js
