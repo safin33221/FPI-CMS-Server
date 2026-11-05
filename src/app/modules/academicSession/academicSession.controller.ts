@@ -28,6 +28,18 @@ const getAllAcademicSessions = catchAsync(
     }
 );
 
+const getActiveAcademicSessions = catchAsync(
+    async (_req: Request, res: Response, _next: NextFunction) => {
+        const result = await academicSessionService.getActiveAcademicSessions();
+        sendResponse(res, {
+            status: httpCode.OK,
+            success: true,
+            message: "Active academic sessions retrieved successfully",
+            data: result,
+        });
+    }
+);
+
 const getCurrentAcademicSession = catchAsync(
     async (_req: Request, res: Response, _next: NextFunction) => {
         const result = await academicSessionService.getCurrentAcademicSession();
@@ -35,6 +47,20 @@ const getCurrentAcademicSession = catchAsync(
             status: httpCode.OK,
             success: true,
             message: "Current academic session retrieved successfully",
+            data: result,
+        });
+    }
+);
+
+const toggleSessionStatus = catchAsync(
+    async (req: Request, res: Response, _next: NextFunction) => {
+        const result = await academicSessionService.toggleSessionStatus(
+            req.params.id as string
+        );
+        sendResponse(res, {
+            status: httpCode.OK,
+            success: true,
+            message: `Academic session is now ${result.isActive ? "running / active" : "inactive"}`,
             data: result,
         });
     }
@@ -48,7 +74,7 @@ const setCurrentAcademicSession = catchAsync(
         sendResponse(res, {
             status: httpCode.OK,
             success: true,
-            message: "Academic session set as current successfully",
+            message: "Academic session set as latest current session",
             data: result,
         });
     }
@@ -86,9 +112,10 @@ const deleteAcademicSession = catchAsync(
 export const academicSessionController = {
     createAcademicSession,
     getAllAcademicSessions,
+    getActiveAcademicSessions,
     getCurrentAcademicSession,
+    toggleSessionStatus,
     setCurrentAcademicSession,
     updateAcademicSession,
     deleteAcademicSession,
 };
-

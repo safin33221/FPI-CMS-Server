@@ -4,8 +4,8 @@ import httpCode from "../../utils/httpStatus.js";
 
 interface CreateAcademicSessionPayload {
     name: string;
-    startDate: string | Date;
-    endDate: string | Date;
+    startDate?: string | Date;
+    endDate?: string | Date;
     isCurrent?: boolean;
     isActive?: boolean;
 }
@@ -18,11 +18,43 @@ interface UpdateAcademicSessionPayload {
     isActive?: boolean;
 }
 
+// Automatically calculate reasonable start and end dates from session name (e.g., "2024-2025" or "2024")
+const parseSessionDates = (
+    name: string,
+    customStart?: string | Date,
+    customEnd?: string | Date
+) => {
+    if (customStart && customEnd) {
+        return {
+            startDate: new Date(customStart),
+            endDate: new Date(customEnd),
+        };
+    }
+
+    const trimmed = name.trim();
+    // Match 4-digit start year, e.g. "2024-2025" -> 2024
+    const match = trimmed.match(/(\d{4})/);
+    if (match && match[1]) {
+        const startYear = parseInt(match[1], 10);
+        // In Bangladesh Technical Education Board (BTEB), 4-year diploma session runs July to June
+        return {
+            startDate: new Date(`${startYear}-07-01T00:00:00.000Z`),
+            endDate: new Date(`${startYear + 4}-06-30T23:59:59.999Z`),
+        };
+    }
+
+    const currentYear = new Date().getFullYear();
+    return {
+        startDate: new Date(`${currentYear}-07-01T00:00:00.000Z`),
+        endDate: new Date(`${currentYear + 4}-06-30T23:59:59.999Z`),
+    };
+};
+
 const createAcademicSession = async (payload: CreateAcademicSessionPayload) => {
-    if (!payload.name || !payload.startDate || !payload.endDate) {
+    if (!payload.name || !payload.name.trim()) {
         throw new AppError(
             httpCode.BAD_REQUEST,
-            "Session name, start date, and end date are required"
+            "শিক্ষাবর্ষের নাম আবশ্যক (e.g. 2024-2025)"
         );
     }
 
@@ -39,17 +71,13 @@ const createAcademicSession = async (payload: CreateAcademicSessionPayload) => {
         );
     }
 
-    const startDate = new Date(payload.startDate);
-    const endDate = new Date(payload.endDate);
+    const { startDate, endDate } = parseSessionDates(
+        trimmedName,
+        payload.startDate,
+        payload.endDate
+    );
 
-    if (endDate <= startDate) {
-        throw new AppError(
-            httpCode.BAD_REQUEST,
-            "End date must be greater than start date"
-        );
-    }
-
-    // If marked as current, deactivate all previous current flags
+    // If marked as the current/latest admission session, update previous latest
     if (payload.isCurrent) {
         await prisma.academicSession.updateMany({
             where: { isCurrent: true },
@@ -57,7 +85,8 @@ const createAcademicSession = async (payload: CreateAcademicSessionPayload) => {
         });
     }
 
-    // If this is the very first session created, make it current by default
+    // In polytechnic institutes, multiple sessions run concurrently (e.g. 2021-22, 2022-23, 2023-24, 2024-25).
+    // All added sessions default to isActive: true (Running / সক্রিয়).
     const count = await prisma.academicSession.count();
     const isCurrent = payload.isCurrent ?? (count === 0);
 
@@ -91,6 +120,17 @@ const getAllAcademicSessions = async () => {
     });
 };
 
+const getActiveAcademicSessions = async () => {
+    return prisma.academicSession.findMany({
+        where: {
+            isActive: true,
+        },
+        orderBy: {
+            startDate: "desc",
+        },
+    });
+};
+
 const getCurrentAcademicSession = async () => {
     let session = await prisma.academicSession.findFirst({
         where: {
@@ -100,7 +140,7 @@ const getCurrentAcademicSession = async () => {
     });
 
     if (!session) {
-        // Fallback to latest active session
+        // Fallback to latest active running session
         session = await prisma.academicSession.findFirst({
             where: { isActive: true },
             orderBy: { startDate: "desc" },
@@ -108,6 +148,27 @@ const getCurrentAcademicSession = async () => {
     }
 
     return session;
+};
+
+const toggleSessionStatus = async (id: string) => {
+    const existing = await prisma.academicSession.findUnique({
+        where: { id },
+    });
+
+    if (!existing) {
+        throw new AppError(httpCode.NOT_FOUND, "Academic session not found");
+    }
+
+    const newActiveState = !existing.isActive;
+
+    return prisma.academicSession.update({
+        where: { id },
+        data: {
+            isActive: newActiveState,
+            // If deactivating, it can no longer be the current active session
+            isCurrent: newActiveState ? existing.isCurrent : false,
+        },
+    });
 };
 
 const setCurrentAcademicSession = async (id: string) => {
@@ -120,6 +181,7 @@ const setCurrentAcademicSession = async (id: string) => {
     }
 
     return prisma.$transaction(async (tx) => {
+        // Set previous current to false, but keep them ACTIVE so other running sessions continue!
         await tx.academicSession.updateMany({
             where: { isCurrent: true },
             data: { isCurrent: false },
@@ -129,7 +191,7 @@ const setCurrentAcademicSession = async (id: string) => {
             where: { id },
             data: {
                 isCurrent: true,
-                isActive: true,
+                isActive: true, // ensure it is active
             },
         });
     });
@@ -159,14 +221,17 @@ const updateAcademicSession = async (
         }
     }
 
-    const startDate = payload.startDate ? new Date(payload.startDate) : existing.startDate;
-    const endDate = payload.endDate ? new Date(payload.endDate) : existing.endDate;
+    let startDate = existing.startDate;
+    let endDate = existing.endDate;
 
-    if (endDate <= startDate) {
-        throw new AppError(
-            httpCode.BAD_REQUEST,
-            "End date must be greater than start date"
+    if (payload.startDate || payload.endDate || payload.name) {
+        const parsed = parseSessionDates(
+            payload.name ?? existing.name,
+            payload.startDate ?? existing.startDate,
+            payload.endDate ?? existing.endDate
         );
+        startDate = parsed.startDate;
+        endDate = parsed.endDate;
     }
 
     if (payload.isCurrent && !existing.isCurrent) {
@@ -221,7 +286,6 @@ const deleteAcademicSession = async (id: string) => {
         existing._count.teachingAssignments;
 
     if (activeReferences > 0) {
-        // Safe deactivate instead of throwing hard database constraint error
         await prisma.academicSession.update({
             where: { id },
             data: {
@@ -231,7 +295,7 @@ const deleteAcademicSession = async (id: string) => {
         });
 
         return {
-            message: `Academic session "${existing.name}" is linked to existing routines/records. It has been deactivated instead of deleted to protect academic integrity.`,
+            message: `Academic session "${existing.name}" is linked to active routines or records. It has been deactivated to preserve academic history.`,
             deactivated: true,
         };
     }
@@ -249,7 +313,9 @@ const deleteAcademicSession = async (id: string) => {
 export const academicSessionService = {
     createAcademicSession,
     getAllAcademicSessions,
+    getActiveAcademicSessions,
     getCurrentAcademicSession,
+    toggleSessionStatus,
     setCurrentAcademicSession,
     updateAcademicSession,
     deleteAcademicSession,

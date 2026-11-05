@@ -84,13 +84,15 @@ const getDepartmentId = async (userId: string) => {
 const assertNoConflict = async (payload: Required<RoutinePayload>) => {
     const candidates = await prisma.classRoutine.findMany({
         where: {
-            academicSessionId: payload.academicSessionId,
             day: payload.day,
             isActive: true,
             OR: [
                 { teacherId: payload.teacherId },
                 { roomId: payload.roomId },
-                { subjectAssignmentId: payload.subjectAssignmentId },
+                {
+                    subjectAssignmentId: payload.subjectAssignmentId,
+                    academicSessionId: payload.academicSessionId,
+                },
             ],
         },
         include: {
@@ -202,20 +204,25 @@ const createRoutine = async (
         );
     }
 
-    const teaching = await prisma.teachingAssignment.findFirst({
+    // Auto-assign teacher to this subject if not already assigned (seamless workflow)
+    await prisma.teachingAssignment.upsert({
         where: {
+            teacherId_subjectAssignmentId: {
+                teacherId: teacher.id,
+                subjectAssignmentId: assignment.id,
+            },
+        },
+        create: {
             teacherId: teacher.id,
             subjectAssignmentId: assignment.id,
+            academicSessionId: payload.academicSessionId,
             isActive: true,
         },
+        update: {
+            isActive: true,
+            academicSessionId: payload.academicSessionId,
+        },
     });
-
-    if (!teaching) {
-        throw new AppError(
-            httpCode.BAD_REQUEST,
-            "Assign this teacher to the subject before scheduling a class"
-        );
-    }
 
     await assertNoConflict(payload);
     return prisma.classRoutine.create({

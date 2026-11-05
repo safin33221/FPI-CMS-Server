@@ -9,6 +9,11 @@ const router = Router();
 // Any authenticated user can view sessions or get current session
 router.get("/", authenticate, academicSessionController.getAllAcademicSessions);
 router.get(
+    "/active",
+    authenticate,
+    academicSessionController.getActiveAcademicSessions
+);
+router.get(
     "/current",
     authenticate,
     academicSessionController.getCurrentAcademicSession
@@ -20,6 +25,13 @@ router.post(
     authenticate,
     authorize(Role.ADMIN, Role.PRINCIPAL),
     academicSessionController.createAcademicSession
+);
+
+router.patch(
+    "/:id/toggle-status",
+    authenticate,
+    authorize(Role.ADMIN, Role.PRINCIPAL),
+    academicSessionController.toggleSessionStatus
 );
 
 router.patch(
@@ -44,4 +56,3 @@ router.delete(
 );
 
 export const AcademicSessionRoutes: Router = router;
-
