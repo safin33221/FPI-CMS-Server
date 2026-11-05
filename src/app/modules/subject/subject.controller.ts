@@ -74,6 +74,29 @@ const getSingleSubject = catchAsync(
     }
 );
 
+const assignTeacher = catchAsync(
+    async (
+        req: Request,
+        res: Response,
+        _next: NextFunction
+    ) => {
+        const result =
+            await subjectService.assignTeacher(
+                req.params.id as string,
+                req.body,
+                (req as any).user
+            );
+
+        sendResponse(res, {
+            status: httpCode.CREATED,
+            success: true,
+            message:
+                "Teacher assigned to subject successfully",
+            data: result,
+        });
+    }
+);
+
 const updateSubject = catchAsync(
     async (
         req: Request,
@@ -121,6 +144,7 @@ export const subjectController = {
     createSubjects,
     getAllSubjects,
     getSingleSubject,
+    assignTeacher,
     updateSubject,
     deleteSubject,
 

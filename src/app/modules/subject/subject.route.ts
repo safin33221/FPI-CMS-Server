@@ -30,6 +30,26 @@ router.get(
     subjectController.getSingleSubject
 );
 
+router.post(
+    "/:id/assign-teacher",
+    authenticate,
+    authorize(
+        Role.ADMIN,
+        Role.DEPARTMENT_HEAD
+    ),
+    subjectController.assignTeacher
+);
+
+router.patch(
+    "/:id/assign-teacher",
+    authenticate,
+    authorize(
+        Role.ADMIN,
+        Role.DEPARTMENT_HEAD
+    ),
+    subjectController.assignTeacher
+);
+
 router.patch(
     "/:id",
     authenticate,
